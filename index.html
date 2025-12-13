@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V3.3 - Auth)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V3.4 - Sound On)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -381,7 +381,7 @@
         <div id="feedback-bonus" class="feedback" style="font-size: 4rem; color: var(--gold);">בונוס רצף! +10 💰</div>
 
         <div id="video-screen" class="screen">
-            <video id="video-player" playsinline muted onerror="game.skipVideo()">
+            <video id="video-player" playsinline onerror="game.skipVideo()">
                 <source src="moves/intro.mp4" type="video/mp4">
             </video>
             <button class="btn-skip" onclick="game.skipVideo()">דלג על הסרטון >></button>
@@ -633,7 +633,7 @@
             videoCallback: null
         };
 
-        // --- AUTH MANAGER (NEW) ---
+        // --- AUTH MANAGER ---
         const AuthManager = {
             mode: 'guest', // 'guest' | 'user'
             currentUser: null,
@@ -857,6 +857,9 @@
                 
                 state.videoCallback = callback;
                 const v = document.getElementById('video-player');
+                
+                // FORCE SOUND ON
+                v.muted = false; 
                 v.querySelector('source').src = src;
                 v.load();
                 
@@ -866,7 +869,13 @@
                 const startBtn = document.getElementById('start-video-btn');
                 startBtn.style.display = 'none';
                 
-                v.play().catch(() => startBtn.style.display = 'block');
+                // Attempt to play. If browser blocks due to no interaction, show button.
+                const playPromise = v.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        startBtn.style.display = 'block';
+                    });
+                }
                 v.onended = game.skipVideo;
             },
             skipVideo: () => { 
@@ -880,7 +889,7 @@
                     ui.showScreen('start-screen'); 
                 }
             },
-            // --- LEADERBOARD & LOAD LOGIC (UPDATED) ---
+            // --- LEADERBOARD & LOAD LOGIC ---
             openLoadMenu: () => {
                 const list = document.getElementById('saved-players-list');
                 const title = document.getElementById('leaderboard-title');
