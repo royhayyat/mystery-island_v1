@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V3.6)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V3.7 - Mobile Ready)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +26,7 @@
             --font-hebrew-block: 'Suez One', serif;
         }
 
+        /* --- BASE STYLES (Desktop First) --- */
         body {
             margin: 0; padding: 0; 
             font-family: var(--font-story); 
@@ -35,6 +36,7 @@
             overflow: hidden; 
             user-select: none; -webkit-user-select: none;
             color: var(--wood-dark);
+            touch-action: manipulation; /* Improves touch response */
         }
 
         #game-container {
@@ -328,6 +330,89 @@
         #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
         
         #dev-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: var(--paper-bg); border: 5px solid var(--wood-dark); padding: 20px; z-index: 10001; text-align: right; }
+
+        /* --- MOBILE & TABLET OPTIMIZATIONS (Media Queries) --- */
+        @media screen and (max-width: 768px) {
+            h1 { font-size: 3.5rem; margin: 15px 0; }
+            h2 { font-size: 2.2rem; }
+            
+            .screen {
+                width: 100%;
+                height: 100%;
+                border-width: 5px; /* Thinner border for small screens */
+                border-radius: 0;
+                padding: 10px;
+                max-width: none;
+                max-height: none;
+                border-image: none; /* Remove complex border image on mobile */
+                border-color: var(--wood-dark);
+            }
+
+            /* Adjust grid for cards to fit 2 per row comfortably */
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                padding: 5px;
+                gap: 10px;
+            }
+
+            .island-card, .char-card {
+                height: 190px;
+            }
+            
+            .island-img-container, .card-img-container {
+                height: 100px;
+            }
+
+            /* Bigger inputs and buttons for touch */
+            input[type="text"], input[type="email"], input[type="password"] {
+                width: 90%;
+                font-size: 1.5rem;
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 10px 25px;
+                font-size: 1.4rem;
+                width: 90%;
+                margin: 5px auto;
+                display: block; /* Stack buttons */
+            }
+
+            /* HUD adjustments */
+            .hud-top {
+                font-size: 1rem;
+                padding: 5px 10px;
+            }
+            
+            /* Game UI - Question & Answers */
+            .question-text { font-size: 2.5rem; }
+            .answers-grid { gap: 10px; }
+            .answer-btn { 
+                padding: 10px; 
+                font-size: 1.8rem; 
+                height: 70px;
+            }
+            
+            /* Powerup buttons */
+            .powerup-bar { gap: 10px; }
+            .powerup-btn { 
+                min-width: auto; 
+                padding: 8px 12px; 
+                font-size: 1.1rem;
+            }
+
+            /* Map markers */
+            .level-node { width: 45px; height: 45px; font-size: 1.5rem; }
+            .level-node.current { width: 55px; height: 55px; }
+            .node-label { display: none; } /* Hide labels on mobile map to prevent clutter */
+            
+            /* Auth bar */
+            .auth-container { width: 95%; padding: 5px; }
+            .auth-text { font-size: 1.3rem; margin-left: 5px; }
+            
+            /* Modal */
+            .modal-content { width: 95%; padding: 15px; }
+        }
     </style>
 </head>
 <body>
