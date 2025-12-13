@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V4.1 - Coins Fix)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V4.2 - Rich Story)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2a1b15">
@@ -33,7 +33,7 @@
             --font-hebrew-block: 'Suez One', serif;
         }
 
-        /* --- BASE STYLES (Desktop First) --- */
+        /* --- BASE STYLES --- */
         body {
             margin: 0; padding: 0; 
             font-family: var(--font-story); 
@@ -675,12 +675,76 @@
         };
 
         const StoryGen = {
+            phrases: {
+                generic: [
+                    "הרוח שורקת בין העצים...", 
+                    "מצאת מטבע עתיק על השביל!", 
+                    "השמש מאירה את הדרך.", 
+                    "ציפור נדירה מתעופפת מעליך.",
+                    "הדרך מתפתלת ולוקחת אותך עמוק יותר..."
+                ],
+                // Jungle (1, 5)
+                jungle: [
+                    "קוף שובב זרק עליך בננה!", 
+                    "הגשר העתיק חורק תחת רגליך...", 
+                    "שמעת שאגה רחוקה של יגואר.", 
+                    "העשב הגבוה מסתיר סודות...",
+                    "גילית פסל עתיק מכוסה בטחב."
+                ],
+                // Water/Beach (3, 6)
+                water: [
+                    "גלים מתנפצים על הסלעים.",
+                    "מצאת צדפה זוהרת בחול.",
+                    "סרטן ענק חוסם את הדרך!",
+                    "המים צלולים, אתה רואה דגים צבעוניים.",
+                    "סירה נטושה מחכה בחוף..."
+                ],
+                // Cave (4, 8)
+                cave: [
+                    "עטלפים מתעופפים בבהלה!",
+                    "הלפיד שלך מהבהב ברוח הקרה.",
+                    "הד צעדיך נשמע למרחקים.",
+                    "קריסטלים זוהרים מאירים את האפלה.",
+                    "נזהרת לא ליפול לבור עמוק..."
+                ],
+                // Spooky/Boss (9, 10)
+                spooky: [
+                    "ערפל סמיך מכסה את האדמה...",
+                    "האם שמעת לחישה באוזן?",
+                    "צללים מרקדים על הקירות.",
+                    "האוויר כאן קר ומצמרר...",
+                    "אתה מרגיש שמישהו צופה בך."
+                ]
+            },
+
             getStory: (islandId, levelNum) => {
-                const stories = ["הדרך לפניך מתפתלת...", "קולות מוזרים נשמעים...", "האם תצליח לעבור?", "האוצר מתקרב!"];
-                const locationName = (LEVEL_DETAILS[islandId] && LEVEL_DETAILS[islandId].names[levelNum-1]) 
-                                     ? LEVEL_DETAILS[islandId].names[levelNum-1] 
-                                     : 'תחנה הבאה';
-                return `הגעת ל${locationName}. ${stories[Math.floor(Math.random()*stories.length)]}`;
+                const islandName = CONFIG.islands.find(i => i.id === islandId).name;
+                const levelName = LEVEL_DETAILS[islandId] ? LEVEL_DETAILS[islandId].names[levelNum-1] : `שלב ${levelNum}`;
+
+                // --- 1. SPECIAL START & END TEXT ---
+                if (levelNum === 1) {
+                    return `הספינה עגנה ב${islandName}. קח נשימה עמוקה, ההרפתקה מתחילה!`;
+                }
+                if (levelNum === 10) {
+                    return `הגעת ל${levelName}! השומר הגדול מחכה לך. האם תצליח לקחת את האוצר?`;
+                }
+
+                // --- 2. CONTEXT AWARE RANDOM TEXT ---
+                let type = 'generic';
+                // Define logic for map types
+                if ([1, 5].includes(islandId)) type = 'jungle';
+                else if ([3, 6].includes(islandId)) type = 'water';
+                else if ([4, 8].includes(islandId)) type = 'cave';
+                else if ([9, 10].includes(islandId)) type = 'spooky';
+
+                // Pick random main phrase
+                const mainPhrase = StoryGen.phrases[type][Math.floor(Math.random() * StoryGen.phrases[type].length)];
+                
+                // Add a little action prefix sometimes
+                const actions = ["המשכת ללכת ו...", "לפתע, ", "בזהירות רבה, ", ""];
+                const prefix = actions[Math.floor(Math.random() * actions.length)];
+
+                return `${prefix}${mainPhrase} הגעת ל${levelName}.`;
             }
         };
 
@@ -1335,205 +1399,6 @@
                 }
                 game.checkAchievements();
                 game.save(); ui.renderShop(type === 'char' ? 'chars' : 'items'); ui.updateHUD();
-            }
-        };
-
-        const ui = {
-            showScreen: (id) => {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById(id).classList.add('active');
-                if(id==='map-screen') { ui.renderMap(); document.getElementById('hud-name').innerText = state.playerName; }
-                if(id==='achievements-screen') ui.renderAchievements();
-            },
-            returnFromShop: () => { 
-                if (previousScreen === 'game-screen') {
-                    ui.showScreen('game-screen'); 
-                    ui.updateGameUI(); // Force refresh buttons!
-                } else { 
-                    ui.showScreen('map-screen'); 
-                    previousScreen = 'map-screen'; 
-                } 
-            },
-            updateGameUI: () => {
-                const qData = state.levelQuestions[state.viewingIndex];
-                if(!qData) return;
-                document.getElementById('question-text').innerText = qData.q;
-                if(qData.isWord) document.getElementById('question-text').style.direction='rtl'; else document.getElementById('question-text').style.direction='ltr';
-                const grid = document.getElementById('answers-area'); grid.innerHTML = '';
-                
-                document.getElementById('btn-prev-q').disabled = (state.viewingIndex === 0);
-                const canGoNext = (state.devMode || state.viewingIndex < state.questionIndex);
-                document.getElementById('btn-next-q').disabled = !canGoNext;
-
-                qData.options.forEach(opt => {
-                    const btn = document.createElement('button'); btn.className = 'answer-btn'; btn.innerText = opt;
-                    if (qData.userAnswer !== null && qData.isCorrect) { 
-                        btn.disabled = true; 
-                        if (Number(opt) === Number(qData.a)) btn.classList.add('correct'); 
-                        else if (Number(opt) === Number(qData.userAnswer)) btn.classList.add('wrong'); 
-                    }
-                    else if (qData.userAnswer === null && qData.failedAttempt && state.viewingIndex === state.questionIndex) { 
-                        btn.onclick = () => game.checkAnswer(opt);
-                    }
-                    else { 
-                        if (qData.userAnswer !== null && qData.isCorrect) {
-                             btn.disabled = true;
-                             if (Number(opt) === Number(qData.a)) btn.classList.add('correct');
-                        } else if (state.viewingIndex < state.questionIndex) {
-                             btn.onclick = () => game.checkAnswer(opt);
-                        } else {
-                             btn.onclick = () => game.checkAnswer(opt); 
-                        }
-                    }
-                    grid.appendChild(btn);
-                });
-                const progressPct = ((state.questionIndex) / CONFIG.questionsPerLevel) * 100;
-                document.getElementById('level-progress-bar').style.width = `${progressPct}%`;
-                const char = CONFIG.characters.find(c => c.id === state.selectedChar);
-                document.getElementById('character-display').innerHTML = `<img src="${char.image}" onerror="this.style.display='none'">`;
-                ui.renderGameNodes();
-                const levelName = CONFIG.islands[state.currentIslandIndex].levels[state.currentLevel-1].name;
-                document.getElementById('game-level-info').innerText = `🚩 שלב ${state.currentLevel} - ${levelName}`;
-                document.getElementById('game-q-num').innerText = state.viewingIndex + 1;
-                document.getElementById('game-coins').innerText = state.coins;
-
-                document.getElementById('qty-parrot').innerText = state.consumables.parrot;
-                document.getElementById('btn-use-parrot').disabled = state.consumables.parrot === 0 || state.viewingIndex !== state.questionIndex;
-                document.getElementById('qty-potion').innerText = state.consumables.potion;
-                document.getElementById('btn-use-potion').disabled = state.consumables.potion === 0 || state.activePotionMoves > 0;
-                
-                const sb = document.getElementById('streak-indicator');
-                if (state.streak > 1) {
-                    sb.style.display = 'block';
-                    sb.innerText = `🔥 ${state.streak}`;
-                } else {
-                    sb.style.display = 'none';
-                }
-            },
-            updateGameHUD: () => { document.getElementById('game-coins').innerText = state.coins; },
-            renderMap: () => {
-                document.getElementById('hud-grade').innerText = ['א','ב','ג','ד'][state.grade-1];
-                document.getElementById('hud-coins').innerText = state.coins;
-                const c = document.getElementById('islands-grid'); c.innerHTML='';
-                CONFIG.islands.forEach((isl, i) => {
-                    const div = document.createElement('div'); const locked = i > state.maxIslandUnlocked;
-                    const isCurrent = (i === state.currentIslandIndex);
-                    div.className = `island-card ${locked?'locked':''} ${!locked && i<state.maxIslandUnlocked?'completed':''} ${isCurrent ? 'current-location-highlight' : ''}`;
-                    let extraHTML = '';
-                    if (isCurrent) {
-                        const charImg = CONFIG.characters.find(c => c.id === state.selectedChar).image;
-                        extraHTML = `<div class="location-label">📍 המיקום שלך</div><img src="${charImg}" class="map-player-marker" onerror="this.style.display='none'">`;
-                    }
-                    div.innerHTML = `
-                        ${extraHTML}
-                        <div class="island-img-container"><img src="${isl.image}" class="island-map-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>🏝️</span>'"></div>
-                        <div class="island-content">
-                            <h3>${isl.name}</h3>
-                            <p style="font-family:var(--font-num); color:var(--wood-light); font-weight:bold;">${locked?'🔒':(i===state.currentIslandIndex?'⚔️ מסע פעיל':'✅ פתוח')}</p>
-                        </div>`;
-                    div.onclick = () => !locked && game.enterIsland(i);
-                    c.appendChild(div);
-                });
-                const sel = document.getElementById('dev-island-select'); sel.innerHTML = '';
-                CONFIG.islands.forEach((isl, i) => { sel.innerHTML += `<option value="${i}">${isl.name}</option>`; });
-                dev.updateLevels();
-            },
-            renderLevelSelect: (islandIdx) => { ui.renderNodes(document.getElementById('active-map-container'), islandIdx, true); },
-            renderGameNodes: () => { ui.renderNodes(document.getElementById('level-nodes-layer'), state.currentIslandIndex, false); },
-            renderNodes: (container, islandIdx, clickable) => {
-                container.innerHTML = '';
-                const path = CONFIG.islands[islandIdx].path || PATHS.default;
-                const levels = CONFIG.islands[islandIdx].levels;
-                container.style.backgroundImage = `url('${CONFIG.islands[islandIdx].image}')`;
-                let max = 10;
-                if(islandIdx === state.maxIslandUnlocked) max = state.maxLevelReached; else if(islandIdx < state.maxIslandUnlocked) max = 11; 
-                for(let i=1; i<=10; i++) {
-                    const node = document.createElement('div'); node.className = 'level-node';
-                    node.style.left = path[i-1].l + '%'; node.style.top = path[i-1].t + '%';
-                    node.innerText = levels[i-1].icon; 
-                    const label = document.createElement('div'); label.className = 'node-label'; label.innerText = levels[i-1].name;
-                    node.appendChild(label);
-                    if(i <= max) {
-                        if(i < max) node.classList.add('completed');
-                        if(i === max && islandIdx === state.maxIslandUnlocked) node.classList.add('current');
-                        if(clickable) node.onclick = () => game.selectLevel(i);
-                    } else { node.classList.add('locked'); }
-                    container.appendChild(node);
-                }
-            },
-            renderCharSelect: () => { 
-                const c = document.getElementById('char-grid'); c.innerHTML='';
-                CONFIG.characters.forEach(ch => {
-                    const d = document.createElement('div'); d.className='char-card';
-                    d.innerHTML=`<div class="card-img-container"><img src="${ch.image}" class="card-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>👤</span>'"></div><div class="card-content"><h3>${ch.name}</h3></div>`;
-                    d.onclick=()=>game.selectChar(ch.id); c.appendChild(d);
-                });
-            },
-            renderShop: (tab = 'chars') => { 
-                const c = document.getElementById('shop-grid'); c.innerHTML=''; document.getElementById('shop-coins').innerText = state.coins;
-                if (tab === 'chars') {
-                    CONFIG.characters.forEach(ch => {
-                        const owned = state.inventory.includes(ch.id);
-                        const d = document.createElement('div'); d.className='char-card';
-                        d.innerHTML=`<div class="card-img-container"><img src="${ch.image}" class="card-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>👤</span>'"></div><div class="card-content"><h3>${ch.name}</h3><p style="font-family:var(--font-num);">${owned?'✅':ch.price}</p></div>`;
-                        if(!owned) d.onclick=()=>game.buyItem('char', ch.id); else d.style.opacity = "0.7";
-                        c.appendChild(d);
-                    });
-                } else {
-                    CONFIG.items.forEach(it => {
-                        const d = document.createElement('div'); d.className='char-card';
-                        d.innerHTML=`<div class="card-img-container" style="font-size:3rem;">${it.icon}</div><div class="card-content"><h3>${it.name}</h3><p style="font-size:0.8rem">${it.desc}</p><p style="font-family:var(--font-num);">💰 ${it.price}</p><p>יש לך: ${state.consumables[it.id]}</p></div>`;
-                        d.onclick=()=>game.buyItem('item', it.id);
-                        c.appendChild(d);
-                    });
-                }
-            },
-            renderAchievements: () => {
-                const c = document.getElementById('achievements-grid'); c.innerHTML = '';
-                ACHIEVEMENTS.forEach(ach => {
-                    const unlocked = state.unlockedAchievements.includes(ach.id);
-                    const d = document.createElement('div'); d.className = `trophy-card ${unlocked?'':'locked'}`;
-                    d.innerHTML = `<div class="trophy-icon">${ach.icon}</div><div class="card-content"><h3>${ach.name}</h3><p style="font-size:0.9rem">${ach.desc}</p>${unlocked?'<p style="color:green; font-weight:bold;">הושלם!</p>':'<p>🔒</p>'}</div>`;
-                    c.appendChild(d);
-                });
-            },
-            showStory: (text, title) => { document.getElementById('story-title').innerText = title; document.getElementById('story-content').innerText = text; ui.showScreen('story-screen'); }
-        };
-
-        const dev = {
-            toggle: () => { 
-                const el = document.getElementById('dev-panel'); 
-                if (el.style.display === 'block') {
-                   dev.close();
-                   return;
-                }
-                const password = prompt("הכנס קוד גישה למנהל המערכת:");
-                if (password === "AAA") {
-                   el.style.display = 'block'; 
-                   state.devMode = true; 
-                   if(document.getElementById('game-screen').classList.contains('active')) {
-                       ui.updateGameUI();
-                   }
-                } else if (password !== null) {
-                    alert("⛔ סיסמה שגויה!");
-                }
-            },
-            close: () => {
-                document.getElementById('dev-panel').style.display = 'none';
-            },
-            updateLevels: () => { 
-                const sel = document.getElementById('dev-level-select'); 
-                sel.innerHTML = ''; 
-                for(let i=1; i<=10; i++) sel.innerHTML += `<option value="${i}">שלב ${i}</option>`; 
-            },
-            jumpTo: () => {
-                const i = parseInt(document.getElementById('dev-island-select').value); 
-                const l = parseInt(document.getElementById('dev-level-select').value);
-                state.currentIslandIndex = i; 
-                state.maxIslandUnlocked = Math.max(state.maxIslandUnlocked, i);
-                if(state.maxIslandUnlocked === i) state.maxLevelReached = Math.max(state.maxLevelReached, l);
-                dev.close(); 
-                game.selectLevel(l);
             }
         };
 
