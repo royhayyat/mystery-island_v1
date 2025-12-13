@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V4.0 - App Ready)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V4.1 - Coins Fix)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2a1b15">
@@ -533,7 +533,7 @@
             <div class="hud-top">
                 <span>👤 <span id="hud-name"></span></span>
                 <span>🎒 כיתה <span id="hud-grade" style="font-family: var(--font-hebrew-block);"></span></span>
-                <span>💎 <span id="hud-coins" style="font-family: var(--font-num);">0</span></span>
+                <span>💰 <span id="hud-coins" style="font-family: var(--font-num);">0</span></span>
                 <div>
                     <button onclick="ui.showScreen('achievements-screen')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🏆</button>
                     <button onclick="ui.showScreen('shop-screen')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🛒</button>
@@ -573,7 +573,7 @@
                 <div class="hud-top">
                     <span id="game-level-info" style="font-family:var(--font-hebrew-block); font-size: 1.5rem; color:#ffd700; text-shadow: 1px 1px 0 #000;"></span>
                     <span style="font-family: var(--font-num);"><span id="game-q-num">1</span>/15</span>
-                    <span>💎 <span id="game-coins" style="font-family: var(--font-num);">0</span></span>
+                    <span>💰 <span id="game-coins" style="font-family: var(--font-num);">0</span></span>
                     <button onclick="game.openShopInGame()" style="background:#ffb300; border:2px solid #3e2723; border-radius:50%; width:40px; height:40px; cursor:pointer; font-size:1.4rem;">🛒</button>
                 </div>
                 
@@ -614,7 +614,7 @@
 
         <div id="shop-screen" class="screen">
             <h2>חנות המסתורין</h2>
-            <div style="text-align:center; font-size:2.5rem; font-family:var(--font-num); color:var(--wood-dark); margin-bottom:10px;">💎 <span id="shop-coins">0</span></div>
+            <div style="text-align:center; font-size:2.5rem; font-family:var(--font-num); color:var(--wood-dark); margin-bottom:10px;">💰 <span id="shop-coins">0</span></div>
             
             <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
                 <button class="btn" onclick="ui.renderShop('chars')">דמויות</button>
