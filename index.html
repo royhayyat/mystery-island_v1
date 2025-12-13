@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V4.2 - Rich Story)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V4.3 - Debug)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2a1b15">
@@ -338,7 +338,7 @@
         
         #dev-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: var(--paper-bg); border: 5px solid var(--wood-dark); padding: 20px; z-index: 10001; text-align: right; }
 
-        /* --- MOBILE & TABLET OPTIMIZATIONS (Media Queries) --- */
+        /* --- MOBILE & TABLET OPTIMIZATIONS --- */
         @media screen and (max-width: 768px) {
             h1 { font-size: 3.5rem; margin: 15px 0; }
             h2 { font-size: 2.2rem; }
@@ -346,78 +346,43 @@
             .screen {
                 width: 100%;
                 height: 100%;
-                border-width: 5px; /* Thinner border for small screens */
+                border-width: 5px; 
                 border-radius: 0;
                 padding: 10px;
                 max-width: none;
                 max-height: none;
-                border-image: none; /* Remove complex border image on mobile */
+                border-image: none; 
                 border-color: var(--wood-dark);
             }
 
-            /* Adjust grid for cards to fit 2 per row comfortably */
             .grid-container {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
                 padding: 5px;
                 gap: 10px;
             }
 
-            .island-card, .char-card {
-                height: 190px;
-            }
-            
-            .island-img-container, .card-img-container {
-                height: 100px;
-            }
+            .island-card, .char-card { height: 190px; }
+            .island-img-container, .card-img-container { height: 100px; }
 
-            /* Bigger inputs and buttons for touch */
             input[type="text"], input[type="email"], input[type="password"] {
-                width: 90%;
-                font-size: 1.5rem;
-                padding: 10px;
+                width: 90%; font-size: 1.5rem; padding: 10px;
             }
 
             .btn {
-                padding: 10px 25px;
-                font-size: 1.4rem;
-                width: 90%;
-                margin: 5px auto;
-                display: block; /* Stack buttons */
+                padding: 10px 25px; font-size: 1.4rem; width: 90%; margin: 5px auto; display: block;
             }
 
-            /* HUD adjustments */
-            .hud-top {
-                font-size: 1rem;
-                padding: 5px 10px;
-            }
-            
-            /* Game UI - Question & Answers */
+            .hud-top { font-size: 1rem; padding: 5px 10px; }
             .question-text { font-size: 2.5rem; }
             .answers-grid { gap: 10px; }
-            .answer-btn { 
-                padding: 10px; 
-                font-size: 1.8rem; 
-                height: 70px;
-            }
-            
-            /* Powerup buttons */
+            .answer-btn { padding: 10px; font-size: 1.8rem; height: 70px; }
             .powerup-bar { gap: 10px; }
-            .powerup-btn { 
-                min-width: auto; 
-                padding: 8px 12px; 
-                font-size: 1.1rem;
-            }
-
-            /* Map markers */
+            .powerup-btn { min-width: auto; padding: 8px 12px; font-size: 1.1rem; }
             .level-node { width: 45px; height: 45px; font-size: 1.5rem; }
             .level-node.current { width: 55px; height: 55px; }
-            .node-label { display: none; } /* Hide labels on mobile map to prevent clutter */
-            
-            /* Auth bar */
+            .node-label { display: none; }
             .auth-container { width: 95%; padding: 5px; }
             .auth-text { font-size: 1.3rem; margin-left: 5px; }
-            
-            /* Modal */
             .modal-content { width: 95%; padding: 15px; }
         }
     </style>
@@ -429,7 +394,6 @@
     <div id="dev-panel">
         <h3 style="margin-top:0; text-align: center;">🔧 בקרת מפתח</h3>
         <p style="text-align:center; font-size:0.9rem; color: green; font-weight:bold;">מצב מנהל הופעל! ✅</p>
-        <p style="text-align:center; font-size:0.8rem;">החיצים למעבר שאלות פתוחים כעת.</p>
         <label>קפוץ לאי:</label> <select id="dev-island-select" onchange="dev.updateLevels()"></select>
         <label>קפוץ לשלב:</label> <select id="dev-level-select"></select>
         <button class="btn btn-secondary" style="width:100%; margin: 10px 0; font-size:1.2rem;" onclick="dev.jumpTo()">קפוץ 🚀</button>
@@ -455,10 +419,8 @@
         <div class="modal-content">
             <h2 style="font-family: 'Rubik Wet Paint'; color: var(--wood-dark); margin-top: 0;">כניסה לגילדה</h2>
             <p style="font-family: 'Amatic SC'; font-size: 1.4rem; color: var(--wood-dark);">הכנס פרטים לשמירה בענן</p>
-            
             <input type="email" id="login-email" placeholder="אימייל של פיראט" style="width:90%">
             <input type="password" id="login-pass" placeholder="סיסמה סודית" style="width:90%; margin-top:10px;">
-            
             <div style="display: flex; justify-content: space-between; margin-top: 20px;">
                 <button onclick="AuthManager.mockLogin()" class="auth-btn" style="width: 48%; font-size: 1.2rem;">כניסה</button>
                 <button onclick="AuthManager.closeLoginModal()" class="auth-btn" style="background: #95a5a6; width: 48%; font-size: 1.2rem; border-color:#7f8c8d;">ביטול</button>
@@ -482,7 +444,6 @@
 
         <div id="start-screen" class="screen active">
             <h1>אי המסתורין</h1>
-            
             <div id="auth-bar" class="auth-container">
                 <div id="guest-view">
                     <span class="auth-text">🏴‍☠️ אורח (שמירה במכשיר)</span>
@@ -493,7 +454,6 @@
                     <button onclick="AuthManager.logout()" class="auth-btn logout">התנתק</button>
                 </div>
             </div>
-
             <div id="guest-input-section">
                 <h3>היי, איך קוראים לך?</h3>
                 <input type="text" id="player-name" placeholder="כתוב את שמך כאן..." />
@@ -501,12 +461,10 @@
                     <button class="btn btn-success" style="padding:15px 50px; font-size: 2.2rem;" onclick="game.initPlayer()">התחל בהרפתקה!</button>
                 </div>
             </div>
-
             <div id="user-start-section" class="hidden" style="text-align: center; margin-top: 20px;">
                 <h3>מוכן להמשיך מהענן?</h3>
                 <button class="btn btn-success" style="padding:15px 50px; font-size: 2.2rem;" onclick="game.initPlayer()">המשך במשחק ▶️</button>
             </div>
-
             <div style="margin-top: 20px; text-align: center;">
                 <button class="btn btn-secondary" onclick="game.openLoadMenu()">🏆 טבלת האלופים</button>
             </div>
@@ -569,14 +527,12 @@
             <div class="game-ui-overlay">
                 <div id="character-display"></div>
                 <div class="progress-container"><div id="level-progress-bar" class="progress-fill"></div></div>
-                
                 <div class="hud-top">
                     <span id="game-level-info" style="font-family:var(--font-hebrew-block); font-size: 1.5rem; color:#ffd700; text-shadow: 1px 1px 0 #000;"></span>
                     <span style="font-family: var(--font-num);"><span id="game-q-num">1</span>/15</span>
                     <span>💰 <span id="game-coins" style="font-family: var(--font-num);">0</span></span>
                     <button onclick="game.openShopInGame()" style="background:#ffb300; border:2px solid #3e2723; border-radius:50%; width:40px; height:40px; cursor:pointer; font-size:1.4rem;">🛒</button>
                 </div>
-                
                 <div style="position:relative; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <button id="btn-prev-q" class="nav-btn" onclick="game.prevQuestion()">◀</button>
                     <div class="question-area" style="flex-grow:1; margin:0 10px;">
@@ -585,14 +541,11 @@
                     </div>
                     <button id="btn-next-q" class="nav-btn" onclick="game.nextQuestionNav()">▶</button>
                 </div>
-
                 <div class="answers-grid" id="answers-area"></div>
-                
                 <div class="powerup-bar">
                     <button id="btn-use-parrot" class="powerup-btn" onclick="game.usePowerUp('parrot')">🦜 תוכי <span id="qty-parrot">0</span></button>
                     <button id="btn-use-potion" class="powerup-btn" onclick="game.usePowerUp('potion')">🧪 שיקוי <span id="qty-potion">0</span></button>
                 </div>
-
                 <div style="text-align:center; margin-top:15px;">
                     <button class="btn btn-secondary" style="font-size:1.2rem; padding:8px 20px;" onclick="ui.showScreen('level-select-screen')">יציאה למפה</button>
                 </div>
@@ -602,9 +555,7 @@
         <div id="complete-screen" class="screen" style="text-align: center; justify-content:center; overflow-y: auto;">
             <canvas id="confetti-canvas"></canvas>
             <h1 style="color:var(--success); border:none; font-size:4rem; margin: 0;">כל הכבוד!</h1>
-            
             <img id="win-image" src="" alt="Victory Image">
-
             <p style="font-size: 2.2rem; font-family: var(--font-story);">הרווחת <span id="level-earnings" style="font-weight:bold; color:var(--wood-dark); font-family:var(--font-num);">0</span> מטבעות</p>
             <div style="margin-top: 20px; position:relative; z-index:100;">
                 <button class="btn btn-success" onclick="game.nextLevel()">השלב הבא</button>
@@ -615,12 +566,10 @@
         <div id="shop-screen" class="screen">
             <h2>חנות המסתורין</h2>
             <div style="text-align:center; font-size:2.5rem; font-family:var(--font-num); color:var(--wood-dark); margin-bottom:10px;">💰 <span id="shop-coins">0</span></div>
-            
             <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
                 <button class="btn" onclick="ui.renderShop('chars')">דמויות</button>
                 <button class="btn" onclick="ui.renderShop('items')">עזרים</button>
             </div>
-
             <div id="shop-grid" class="grid-container"></div>
             <button class="btn btn-secondary" style="margin-top:auto" onclick="ui.returnFromShop()">חזור</button>
         </div>
@@ -683,7 +632,6 @@
                     "ציפור נדירה מתעופפת מעליך.",
                     "הדרך מתפתלת ולוקחת אותך עמוק יותר..."
                 ],
-                // Jungle (1, 5)
                 jungle: [
                     "קוף שובב זרק עליך בננה!", 
                     "הגשר העתיק חורק תחת רגליך...", 
@@ -691,7 +639,6 @@
                     "העשב הגבוה מסתיר סודות...",
                     "גילית פסל עתיק מכוסה בטחב."
                 ],
-                // Water/Beach (3, 6)
                 water: [
                     "גלים מתנפצים על הסלעים.",
                     "מצאת צדפה זוהרת בחול.",
@@ -699,7 +646,6 @@
                     "המים צלולים, אתה רואה דגים צבעוניים.",
                     "סירה נטושה מחכה בחוף..."
                 ],
-                // Cave (4, 8)
                 cave: [
                     "עטלפים מתעופפים בבהלה!",
                     "הלפיד שלך מהבהב ברוח הקרה.",
@@ -707,7 +653,6 @@
                     "קריסטלים זוהרים מאירים את האפלה.",
                     "נזהרת לא ליפול לבור עמוק..."
                 ],
-                // Spooky/Boss (9, 10)
                 spooky: [
                     "ערפל סמיך מכסה את האדמה...",
                     "האם שמעת לחישה באוזן?",
@@ -721,7 +666,6 @@
                 const islandName = CONFIG.islands.find(i => i.id === islandId).name;
                 const levelName = LEVEL_DETAILS[islandId] ? LEVEL_DETAILS[islandId].names[levelNum-1] : `שלב ${levelNum}`;
 
-                // --- 1. SPECIAL START & END TEXT ---
                 if (levelNum === 1) {
                     return `הספינה עגנה ב${islandName}. קח נשימה עמוקה, ההרפתקה מתחילה!`;
                 }
@@ -729,18 +673,13 @@
                     return `הגעת ל${levelName}! השומר הגדול מחכה לך. האם תצליח לקחת את האוצר?`;
                 }
 
-                // --- 2. CONTEXT AWARE RANDOM TEXT ---
                 let type = 'generic';
-                // Define logic for map types
                 if ([1, 5].includes(islandId)) type = 'jungle';
                 else if ([3, 6].includes(islandId)) type = 'water';
                 else if ([4, 8].includes(islandId)) type = 'cave';
                 else if ([9, 10].includes(islandId)) type = 'spooky';
 
-                // Pick random main phrase
                 const mainPhrase = StoryGen.phrases[type][Math.floor(Math.random() * StoryGen.phrases[type].length)];
-                
-                // Add a little action prefix sometimes
                 const actions = ["המשכת ללכת ו...", "לפתע, ", "בזהירות רבה, ", ""];
                 const prefix = actions[Math.floor(Math.random() * actions.length)];
 
@@ -1133,56 +1072,59 @@
             },
             
             initPlayer: () => {
-                let name = '';
-                
-                if (AuthManager.mode === 'user') {
-                    name = AuthManager.currentUser.name;
-                    // Simulate loading fake cloud data
+                try {
+                    let name = '';
+                    
+                    if (AuthManager.mode === 'user') {
+                        name = AuthManager.currentUser.name;
+                        state.playerName = name;
+                        document.getElementById('hud-name').innerText = name;
+                        
+                        // Mock Data for Cloud User
+                        state = { 
+                            ...state, 
+                            playerName: name, 
+                            maxIslandUnlocked: 2, 
+                            coins: 120,
+                            inventory: ['gal', 'nicole', 'noam'] 
+                        };
+                        
+                        state.isReturning = true;
+                        ui.showScreen('map-screen');
+                        Sound.click();
+                        return;
+                    }
+
+                    // Guest Mode Logic
+                    name = document.getElementById('player-name').value.trim();
+                    if (!name) return alert('נא לכתוב שם');
+                    
+                    const saved = localStorage.getItem('mathSave_' + name);
                     state.playerName = name;
                     document.getElementById('hud-name').innerText = name;
-                    
-                    // Mock Data for Cloud User
-                    state = { 
-                        ...state, 
-                        playerName: name, 
-                        maxIslandUnlocked: 2, 
-                        coins: 120,
-                        inventory: ['gal', 'nicole', 'noam'] 
-                    };
-                    
-                    state.isReturning = true;
-                    ui.showScreen('map-screen');
-                    Sound.click();
-                    return;
-                }
-
-                // Guest Mode Logic
-                name = document.getElementById('player-name').value.trim();
-                if (!name) return alert('נא לכתוב שם');
-                
-                const saved = localStorage.getItem('mathSave_' + name);
-                state.playerName = name;
-                document.getElementById('hud-name').innerText = name;
-                if (saved) {
-                    state = { ...state, ...JSON.parse(saved) };
-                    if(!state.inventory.includes('noam')) state.inventory.push('noam');
-                    if(!state.consumables || (state.consumables.parrot === 0 && state.consumables.potion === 0)) {
-                        state.consumables = { parrot: 2, potion: 2 }; 
+                    if (saved) {
+                        state = { ...state, ...JSON.parse(saved) };
+                        if(!state.inventory.includes('noam')) state.inventory.push('noam');
+                        if(!state.consumables || (state.consumables.parrot === 0 && state.consumables.potion === 0)) {
+                            state.consumables = { parrot: 2, potion: 2 }; 
+                        }
+                        if(!state.unlockedAchievements) state.unlockedAchievements = [];
+                        state.isReturning = true;
+                        ui.showScreen('map-screen');
+                    } else {
+                        state.isReturning = false;
+                        state.consumables = { parrot: 2, potion: 2 };
+                        document.getElementById('welcome-name').innerText = name;
+                        ui.showScreen('grade-screen');
                     }
-                    if(!state.unlockedAchievements) state.unlockedAchievements = [];
-                    state.isReturning = true;
-                    ui.showScreen('map-screen');
-                } else {
-                    state.isReturning = false;
-                    state.consumables = { parrot: 2, potion: 2 };
-                    document.getElementById('welcome-name').innerText = name;
-                    ui.showScreen('grade-screen');
+                    if(document.getElementById('qty-parrot')) {
+                        document.getElementById('qty-parrot').innerText = state.consumables.parrot;
+                        document.getElementById('qty-potion').innerText = state.consumables.potion;
+                    }
+                    Sound.click();
+                } catch(e) {
+                    alert("שגיאה בהתחלת המשחק: " + e.message);
                 }
-                if(document.getElementById('qty-parrot')) {
-                    document.getElementById('qty-parrot').innerText = state.consumables.parrot;
-                    document.getElementById('qty-potion').innerText = state.consumables.potion;
-                }
-                Sound.click();
             },
             setGrade: (g) => { state.grade = g; Sound.click(); ui.showScreen('char-select-screen'); ui.renderCharSelect(); },
             selectChar: (id) => {
@@ -1399,6 +1341,205 @@
                 }
                 game.checkAchievements();
                 game.save(); ui.renderShop(type === 'char' ? 'chars' : 'items'); ui.updateHUD();
+            }
+        };
+
+        const ui = {
+            showScreen: (id) => {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                if(id==='map-screen') { ui.renderMap(); document.getElementById('hud-name').innerText = state.playerName; }
+                if(id==='achievements-screen') ui.renderAchievements();
+            },
+            returnFromShop: () => { 
+                if (previousScreen === 'game-screen') {
+                    ui.showScreen('game-screen'); 
+                    ui.updateGameUI(); // Force refresh buttons!
+                } else { 
+                    ui.showScreen('map-screen'); 
+                    previousScreen = 'map-screen'; 
+                } 
+            },
+            updateGameUI: () => {
+                const qData = state.levelQuestions[state.viewingIndex];
+                if(!qData) return;
+                document.getElementById('question-text').innerText = qData.q;
+                if(qData.isWord) document.getElementById('question-text').style.direction='rtl'; else document.getElementById('question-text').style.direction='ltr';
+                const grid = document.getElementById('answers-area'); grid.innerHTML = '';
+                
+                document.getElementById('btn-prev-q').disabled = (state.viewingIndex === 0);
+                const canGoNext = (state.devMode || state.viewingIndex < state.questionIndex);
+                document.getElementById('btn-next-q').disabled = !canGoNext;
+
+                qData.options.forEach(opt => {
+                    const btn = document.createElement('button'); btn.className = 'answer-btn'; btn.innerText = opt;
+                    if (qData.userAnswer !== null && qData.isCorrect) { 
+                        btn.disabled = true; 
+                        if (Number(opt) === Number(qData.a)) btn.classList.add('correct'); 
+                        else if (Number(opt) === Number(qData.userAnswer)) btn.classList.add('wrong'); 
+                    }
+                    else if (qData.userAnswer === null && qData.failedAttempt && state.viewingIndex === state.questionIndex) { 
+                        btn.onclick = () => game.checkAnswer(opt);
+                    }
+                    else { 
+                        if (qData.userAnswer !== null && qData.isCorrect) {
+                             btn.disabled = true;
+                             if (Number(opt) === Number(qData.a)) btn.classList.add('correct');
+                        } else if (state.viewingIndex < state.questionIndex) {
+                             btn.onclick = () => game.checkAnswer(opt);
+                        } else {
+                             btn.onclick = () => game.checkAnswer(opt); 
+                        }
+                    }
+                    grid.appendChild(btn);
+                });
+                const progressPct = ((state.questionIndex) / CONFIG.questionsPerLevel) * 100;
+                document.getElementById('level-progress-bar').style.width = `${progressPct}%`;
+                const char = CONFIG.characters.find(c => c.id === state.selectedChar);
+                document.getElementById('character-display').innerHTML = `<img src="${char.image}" onerror="this.style.display='none'">`;
+                ui.renderGameNodes();
+                const levelName = CONFIG.islands[state.currentIslandIndex].levels[state.currentLevel-1].name;
+                document.getElementById('game-level-info').innerText = `🚩 שלב ${state.currentLevel} - ${levelName}`;
+                document.getElementById('game-q-num').innerText = state.viewingIndex + 1;
+                document.getElementById('game-coins').innerText = state.coins;
+
+                document.getElementById('qty-parrot').innerText = state.consumables.parrot;
+                document.getElementById('btn-use-parrot').disabled = state.consumables.parrot === 0 || state.viewingIndex !== state.questionIndex;
+                document.getElementById('qty-potion').innerText = state.consumables.potion;
+                document.getElementById('btn-use-potion').disabled = state.consumables.potion === 0 || state.activePotionMoves > 0;
+                
+                const sb = document.getElementById('streak-indicator');
+                if (state.streak > 1) {
+                    sb.style.display = 'block';
+                    sb.innerText = `🔥 ${state.streak}`;
+                } else {
+                    sb.style.display = 'none';
+                }
+            },
+            updateGameHUD: () => { document.getElementById('game-coins').innerText = state.coins; },
+            renderMap: () => {
+                document.getElementById('hud-grade').innerText = ['א','ב','ג','ד'][state.grade-1];
+                document.getElementById('hud-coins').innerText = state.coins;
+                const c = document.getElementById('islands-grid'); c.innerHTML='';
+                CONFIG.islands.forEach((isl, i) => {
+                    const div = document.createElement('div'); const locked = i > state.maxIslandUnlocked;
+                    const isCurrent = (i === state.currentIslandIndex);
+                    div.className = `island-card ${locked?'locked':''} ${!locked && i<state.maxIslandUnlocked?'completed':''} ${isCurrent ? 'current-location-highlight' : ''}`;
+                    let extraHTML = '';
+                    if (isCurrent) {
+                        const charImg = CONFIG.characters.find(c => c.id === state.selectedChar).image;
+                        extraHTML = `<div class="location-label">📍 המיקום שלך</div><img src="${charImg}" class="map-player-marker" onerror="this.style.display='none'">`;
+                    }
+                    div.innerHTML = `
+                        ${extraHTML}
+                        <div class="island-img-container"><img src="${isl.image}" class="island-map-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>🏝️</span>'"></div>
+                        <div class="island-content">
+                            <h3>${isl.name}</h3>
+                            <p style="font-family:var(--font-num); color:var(--wood-light); font-weight:bold;">${locked?'🔒':(i===state.currentIslandIndex?'⚔️ מסע פעיל':'✅ פתוח')}</p>
+                        </div>`;
+                    div.onclick = () => !locked && game.enterIsland(i);
+                    c.appendChild(div);
+                });
+                const sel = document.getElementById('dev-island-select'); sel.innerHTML = '';
+                CONFIG.islands.forEach((isl, i) => { sel.innerHTML += `<option value="${i}">${isl.name}</option>`; });
+                dev.updateLevels();
+            },
+            renderLevelSelect: (islandIdx) => { ui.renderNodes(document.getElementById('active-map-container'), islandIdx, true); },
+            renderGameNodes: () => { ui.renderNodes(document.getElementById('level-nodes-layer'), state.currentIslandIndex, false); },
+            renderNodes: (container, islandIdx, clickable) => {
+                container.innerHTML = '';
+                const path = CONFIG.islands[islandIdx].path || PATHS.default;
+                const levels = CONFIG.islands[islandIdx].levels;
+                container.style.backgroundImage = `url('${CONFIG.islands[islandIdx].image}')`;
+                let max = 10;
+                if(islandIdx === state.maxIslandUnlocked) max = state.maxLevelReached; else if(islandIdx < state.maxIslandUnlocked) max = 11; 
+                for(let i=1; i<=10; i++) {
+                    const node = document.createElement('div'); node.className = 'level-node';
+                    node.style.left = path[i-1].l + '%'; node.style.top = path[i-1].t + '%';
+                    node.innerText = levels[i-1].icon; 
+                    const label = document.createElement('div'); label.className = 'node-label'; label.innerText = levels[i-1].name;
+                    node.appendChild(label);
+                    if(i <= max) {
+                        if(i < max) node.classList.add('completed');
+                        if(i === max && islandIdx === state.maxIslandUnlocked) node.classList.add('current');
+                        if(clickable) node.onclick = () => game.selectLevel(i);
+                    } else { node.classList.add('locked'); }
+                    container.appendChild(node);
+                }
+            },
+            renderCharSelect: () => { 
+                const c = document.getElementById('char-grid'); c.innerHTML='';
+                CONFIG.characters.forEach(ch => {
+                    const d = document.createElement('div'); d.className='char-card';
+                    d.innerHTML=`<div class="card-img-container"><img src="${ch.image}" class="card-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>👤</span>'"></div><div class="card-content"><h3>${ch.name}</h3></div>`;
+                    d.onclick=()=>game.selectChar(ch.id); c.appendChild(d);
+                });
+            },
+            renderShop: (tab = 'chars') => { 
+                const c = document.getElementById('shop-grid'); c.innerHTML=''; document.getElementById('shop-coins').innerText = state.coins;
+                if (tab === 'chars') {
+                    CONFIG.characters.forEach(ch => {
+                        const owned = state.inventory.includes(ch.id);
+                        const d = document.createElement('div'); d.className='char-card';
+                        d.innerHTML=`<div class="card-img-container"><img src="${ch.image}" class="card-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>👤</span>'"></div><div class="card-content"><h3>${ch.name}</h3><p style="font-family:var(--font-num);">${owned?'✅':ch.price}</p></div>`;
+                        if(!owned) d.onclick=()=>game.buyItem('char', ch.id); else d.style.opacity = "0.7";
+                        c.appendChild(d);
+                    });
+                } else {
+                    CONFIG.items.forEach(it => {
+                        const d = document.createElement('div'); d.className='char-card';
+                        d.innerHTML=`<div class="card-img-container" style="font-size:3rem;">${it.icon}</div><div class="card-content"><h3>${it.name}</h3><p style="font-size:0.8rem">${it.desc}</p><p style="font-family:var(--font-num);">💰 ${it.price}</p><p>יש לך: ${state.consumables[it.id]}</p></div>`;
+                        d.onclick=()=>game.buyItem('item', it.id);
+                        c.appendChild(d);
+                    });
+                }
+            },
+            renderAchievements: () => {
+                const c = document.getElementById('achievements-grid'); c.innerHTML = '';
+                ACHIEVEMENTS.forEach(ach => {
+                    const unlocked = state.unlockedAchievements.includes(ach.id);
+                    const d = document.createElement('div'); d.className = `trophy-card ${unlocked?'':'locked'}`;
+                    d.innerHTML = `<div class="trophy-icon">${ach.icon}</div><div class="card-content"><h3>${ach.name}</h3><p style="font-size:0.9rem">${ach.desc}</p>${unlocked?'<p style="color:green; font-weight:bold;">הושלם!</p>':'<p>🔒</p>'}</div>`;
+                    c.appendChild(d);
+                });
+            },
+            showStory: (text, title) => { document.getElementById('story-title').innerText = title; document.getElementById('story-content').innerText = text; ui.showScreen('story-screen'); }
+        };
+
+        const dev = {
+            toggle: () => { 
+                const el = document.getElementById('dev-panel'); 
+                if (el.style.display === 'block') {
+                   dev.close();
+                   return;
+                }
+                const password = prompt("הכנס קוד גישה למנהל המערכת:");
+                if (password === "AAA") {
+                   el.style.display = 'block'; 
+                   state.devMode = true; 
+                   if(document.getElementById('game-screen').classList.contains('active')) {
+                       ui.updateGameUI();
+                   }
+                } else if (password !== null) {
+                    alert("⛔ סיסמה שגויה!");
+                }
+            },
+            close: () => {
+                document.getElementById('dev-panel').style.display = 'none';
+            },
+            updateLevels: () => { 
+                const sel = document.getElementById('dev-level-select'); 
+                sel.innerHTML = ''; 
+                for(let i=1; i<=10; i++) sel.innerHTML += `<option value="${i}">שלב ${i}</option>`; 
+            },
+            jumpTo: () => {
+                const i = parseInt(document.getElementById('dev-island-select').value); 
+                const l = parseInt(document.getElementById('dev-level-select').value);
+                state.currentIslandIndex = i; 
+                state.maxIslandUnlocked = Math.max(state.maxIslandUnlocked, i);
+                if(state.maxIslandUnlocked === i) state.maxLevelReached = Math.max(state.maxLevelReached, l);
+                dev.close(); 
+                game.selectLevel(l);
             }
         };
 
