@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V4.3 - Debug)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V5.3 - Smart Logic)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2a1b15">
@@ -394,6 +394,7 @@
     <div id="dev-panel">
         <h3 style="margin-top:0; text-align: center;">🔧 בקרת מפתח</h3>
         <p style="text-align:center; font-size:0.9rem; color: green; font-weight:bold;">מצב מנהל הופעל! ✅</p>
+        <p style="text-align:center; font-size:0.8rem;">החיצים למעבר שאלות פתוחים כעת.</p>
         <label>קפוץ לאי:</label> <select id="dev-island-select" onchange="dev.updateLevels()"></select>
         <label>קפוץ לשלב:</label> <select id="dev-level-select"></select>
         <button class="btn btn-secondary" style="width:100%; margin: 10px 0; font-size:1.2rem;" onclick="dev.jumpTo()">קפוץ 🚀</button>
@@ -624,66 +625,12 @@
         };
 
         const StoryGen = {
-            phrases: {
-                generic: [
-                    "הרוח שורקת בין העצים...", 
-                    "מצאת מטבע עתיק על השביל!", 
-                    "השמש מאירה את הדרך.", 
-                    "ציפור נדירה מתעופפת מעליך.",
-                    "הדרך מתפתלת ולוקחת אותך עמוק יותר..."
-                ],
-                jungle: [
-                    "קוף שובב זרק עליך בננה!", 
-                    "הגשר העתיק חורק תחת רגליך...", 
-                    "שמעת שאגה רחוקה של יגואר.", 
-                    "העשב הגבוה מסתיר סודות...",
-                    "גילית פסל עתיק מכוסה בטחב."
-                ],
-                water: [
-                    "גלים מתנפצים על הסלעים.",
-                    "מצאת צדפה זוהרת בחול.",
-                    "סרטן ענק חוסם את הדרך!",
-                    "המים צלולים, אתה רואה דגים צבעוניים.",
-                    "סירה נטושה מחכה בחוף..."
-                ],
-                cave: [
-                    "עטלפים מתעופפים בבהלה!",
-                    "הלפיד שלך מהבהב ברוח הקרה.",
-                    "הד צעדיך נשמע למרחקים.",
-                    "קריסטלים זוהרים מאירים את האפלה.",
-                    "נזהרת לא ליפול לבור עמוק..."
-                ],
-                spooky: [
-                    "ערפל סמיך מכסה את האדמה...",
-                    "האם שמעת לחישה באוזן?",
-                    "צללים מרקדים על הקירות.",
-                    "האוויר כאן קר ומצמרר...",
-                    "אתה מרגיש שמישהו צופה בך."
-                ]
-            },
-
             getStory: (islandId, levelNum) => {
-                const islandName = CONFIG.islands.find(i => i.id === islandId).name;
-                const levelName = LEVEL_DETAILS[islandId] ? LEVEL_DETAILS[islandId].names[levelNum-1] : `שלב ${levelNum}`;
-
-                if (levelNum === 1) {
-                    return `הספינה עגנה ב${islandName}. קח נשימה עמוקה, ההרפתקה מתחילה!`;
-                }
-                if (levelNum === 10) {
-                    return `הגעת ל${levelName}! השומר הגדול מחכה לך. האם תצליח לקחת את האוצר?`;
-                }
-
-                let type = 'generic';
-                if ([1, 5].includes(islandId)) type = 'jungle';
-                else if ([3, 6].includes(islandId)) type = 'water';
-                else if ([4, 8].includes(islandId)) type = 'cave';
-                else if ([9, 10].includes(islandId)) type = 'spooky';
-
-                const mainPhrase = StoryGen.phrases[type][Math.floor(Math.random() * StoryGen.phrases[type].length)];
-                const actions = ["המשכת ללכת ו...", "לפתע, ", "בזהירות רבה, ", ""];
-                const prefix = actions[Math.floor(Math.random() * actions.length)];
-
-                return `${prefix}${mainPhrase} הגעת ל${levelName}.`;
+                const stories = ["הדרך לפניך מתפתלת...", "קולות מוזרים נשמעים...", "האם תצליח לעבור?", "האוצר מתקרב!"];
+                const locationName = (LEVEL_DETAILS[islandId] && LEVEL_DETAILS[islandId].names[levelNum-1]) 
+                                     ? LEVEL_DETAILS[islandId].names[levelNum-1] 
+                                     : 'תחנה הבאה';
+                return `הגעת ל${locationName}. ${stories[Math.floor(Math.random()*stories.length)]}`;
             }
         };
 
@@ -814,81 +761,111 @@
             rnd: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
             pick: (arr) => arr[Math.floor(Math.random() * arr.length)],
 
+            // לוגיקה מעורבת: מחליטה מאיזו כיתה לקחת את השאלה
+            getEffectiveGrade: (actualGrade, level) => {
+                const r = Math.random();
+                
+                // כיתה ב': 30% חזרה על א' בהתחלה, 20% אתגר ג' בסוף
+                if (actualGrade === 2) {
+                    if (level <= 3 && r < 0.3) return 1; 
+                    if (level >= 8 && r < 0.2) return 3; 
+                    return 2;
+                }
+                
+                // כיתה ג': 30% חזרה על ב' בהתחלה, 20% אתגר ד' בסוף
+                if (actualGrade === 3) {
+                    if (level <= 3 && r < 0.3) return 2;
+                    if (level >= 8 && r < 0.2) return 4;
+                    return 3;
+                }
+
+                // כיתה ד': 30% חזרה על ג' בהתחלה
+                if (actualGrade === 4) {
+                    if (level <= 3 && r < 0.3) return 3;
+                    return 4;
+                }
+
+                return 1;
+            },
+
             generate: (typeIgnored, grade, level, qIdx) => {
+                const effGrade = MathGen.getEffectiveGrade(grade, level);
                 const islandId = state.currentIslandIndex + 1;
-                if (islandId <= 2) return MathGen.getBasicMath(grade, level);
-                if (islandId === 3) return MathGen.getWordProblem(grade, 'basic');
-                if (islandId === 4) return MathGen.getMulDiv(grade);
+                
+                if (islandId <= 2) return MathGen.getBasicMath(effGrade, level);
+                if (islandId === 3) return MathGen.getWordProblem(effGrade, level);
+                if (islandId === 4) return MathGen.getMulDiv(effGrade, level);
                 if (islandId <= 6) {
                     const r = Math.random();
-                    if (r < 0.4) return MathGen.getBasicMath(grade, level);
-                    if (r < 0.7) return MathGen.getMulDiv(grade);
-                    return MathGen.getWordProblem(grade, 'mixed');
+                    if (r < 0.4) return MathGen.getBasicMath(effGrade, level);
+                    if (r < 0.7) return MathGen.getMulDiv(effGrade, level);
+                    return MathGen.getWordProblem(effGrade, level);
                 }
-                if (islandId <= 8) return MathGen.getLogic(grade);
+                if (islandId <= 8) return MathGen.getLogic(effGrade, level);
+                
                 const r = Math.random();
-                if (r < 0.25) return MathGen.getBasicMath(grade, level);
-                if (r < 0.5) return MathGen.getMulDiv(grade);
-                if (r < 0.75) return MathGen.getWordProblem(grade, 'complex');
-                return MathGen.getLogic(grade);
+                if (r < 0.25) return MathGen.getBasicMath(effGrade, level);
+                if (r < 0.5) return MathGen.getMulDiv(effGrade, level);
+                if (r < 0.75) return MathGen.getWordProblem(effGrade, level);
+                return MathGen.getLogic(effGrade, level);
             },
+
             getBasicMath: (grade, level) => {
-                let max = 10;
-                if (grade === 1) max = (level > 5) ? 20 : 10;
-                else if (grade === 2) max = 100;
-                else if (grade === 3) max = 1000;
-                else max = 10000;
+                let max;
+                if (grade === 1) max = (level < 5) ? 10 : 20;
+                else if (grade === 2) max = 20 + (level * 8); 
+                else if (grade === 3) max = 100 + (level * 90);
+                else max = 1000 + (level * 900);
+                
+                if (max > 100) max = Math.floor(max / 10) * 10;
+
                 const isAdd = Math.random() > 0.5;
                 let n1, n2;
                 if (isAdd) {
-                    n1 = MathGen.rnd(1, max / 2);
-                    n2 = MathGen.rnd(1, max / 2);
-                    if (grade === 1 && n1+n2 > 20) n2 = 20 - n1; 
+                    n1 = MathGen.rnd(1, max / 2); n2 = MathGen.rnd(1, max / 2);
+                    if (grade === 1 && level < 5 && n1 + n2 > 10) n2 = 10 - n1;
                     return MathGen.formatQ(`${n1} + ${n2} = ?`, n1 + n2);
                 } else {
-                    n1 = MathGen.rnd(Math.floor(max/4), max);
-                    n2 = MathGen.rnd(1, n1);
+                    n1 = MathGen.rnd(Math.floor(max * 0.4), max); n2 = MathGen.rnd(1, n1);
                     return MathGen.formatQ(`${n1} - ${n2} = ?`, n1 - n2);
                 }
             },
-            getMulDiv: (grade) => {
-                if (grade === 1) {
-                    if (Math.random() > 0.5) {
-                        const n = MathGen.rnd(2, 4);
-                        return MathGen.formatQ(`${n} + ${n} + ${n} = ?`, n * 3);
-                    } else {
-                        const n = MathGen.rnd(1, 5);
-                        return MathGen.formatQ(`${n} × 1 = ?`, n);
-                    }
+
+            getMulDiv: (grade, level) => {
+                if (grade === 1) { 
+                    const n = MathGen.rnd(2, 3 + Math.floor(level/3));
+                    return MathGen.formatQ(`${n} + ${n} + ${n} = ?`, n * 3);
                 }
-                let maxN = (grade === 2) ? 5 : 10; 
-                if (grade === 4) maxN = 12;
+                
+                let maxFactor = 2 + Math.floor(level * 0.8); 
+                if (grade === 2 && maxFactor > 5) maxFactor = 5;
+                if (grade === 3 && maxFactor > 10) maxFactor = 10;
+                if (grade === 4 && maxFactor > 12) maxFactor = 12;
+
                 if (Math.random() > 0.5) { 
-                    let n1 = MathGen.rnd(1, maxN);
-                    let n2 = MathGen.rnd(1, maxN); 
-                    if(grade === 2) n2 = MathGen.rnd(1, 5); 
+                    let n1 = MathGen.rnd(1, maxFactor), n2 = MathGen.rnd(1, maxFactor);
                     return MathGen.formatQ(`${n1} × ${n2} = ?`, n1 * n2);
                 } else { 
-                    let ans = MathGen.rnd(1, maxN);
-                    let n2 = MathGen.rnd(1, maxN);
-                    if(grade === 2) n2 = MathGen.rnd(1, 5);
-                    let n1 = ans * n2;
-                    return MathGen.formatQ(`${n1} : ${n2} = ?`, ans);
+                    let ans = MathGen.rnd(1, maxFactor), n2 = MathGen.rnd(1, maxFactor);
+                    return MathGen.formatQ(`${ans*n2} : ${n2} = ?`, ans);
                 }
             },
-            getWordProblem: (grade, complexity) => {
+
+            getWordProblem: (grade, level) => {
                 const name = MathGen.pick(MathGen.db.names);
                 const item = MathGen.pick(MathGen.db.items);
+                
                 let limit = 10;
-                if (grade === 2) limit = 20;
-                if (grade >= 3) limit = 50;
-                if (grade === 4 && Math.random() > 0.5) {
-                    let dist = MathGen.rnd(100, 500);
-                    let extra = MathGen.rnd(50, 200);
+                if (grade === 1) limit = (level < 5) ? 10 : 20;
+                if (grade === 2) limit = 20 + (level * 3);
+                if (grade >= 3) limit = 50 + (level * 10);
+
+                if (grade === 4 && level > 5 && Math.random() > 0.5) {
+                    let dist = MathGen.rnd(10, level * 20) * 10; let extra = MathGen.rnd(10, level * 10) * 10;
                     return MathGen.formatQ(`דני רץ ${dist} מטר ואז הלך עוד ${extra} מטר. כמה עבר סה"כ?`, dist + extra, true);
                 }
-                let n1 = MathGen.rnd(3, limit);
-                let n2 = MathGen.rnd(2, limit/2);
+
+                let n1 = MathGen.rnd(3, limit), n2 = MathGen.rnd(2, limit/2);
                 if (Math.random() > 0.5) { 
                     let action = MathGen.pick(MathGen.db.actions_add);
                     return MathGen.formatQ(`ל${name} היו ${n1} ${item}. הוא ${action} עוד ${n2}. כמה יש לו עכשיו?`, n1 + n2, true);
@@ -898,33 +875,28 @@
                     return MathGen.formatQ(`ל${name} היו ${total} ${item}. הוא ${action} ${n2}. כמה נשארו?`, n1, true);
                 }
             },
-            getLogic: (grade) => {
+
+            getLogic: (grade, level) => {
                 const type = MathGen.rnd(1, 3);
                 if (type === 1) { 
-                    let start = MathGen.rnd(1, 10);
-                    let jump = MathGen.rnd(2, 5);
-                    if (grade === 1) jump = 1; 
+                    let start = MathGen.rnd(1, 10 + level); let jump = MathGen.rnd(1, grade===1?2:2+Math.floor(level/3));
                     return MathGen.formatQ(`${start}, ${start+jump}, ${start+jump*2}, ?`, start+jump*3);
                 }
                 if (type === 2) { 
-                    let a = MathGen.rnd(1, 10);
-                    let b = MathGen.rnd(1, 10);
-                    let res = a + b;
-                    return MathGen.formatQ(`${a} + ? = ${res}`, b);
+                    let max = (grade===1)?10:10*grade+(level*2);
+                    let a = MathGen.rnd(1, max), b = MathGen.rnd(1, max);
+                    return MathGen.formatQ(`${a} + ? = ${a+b}`, b);
                 }
-                if (type === 3) { 
-                    let a = MathGen.rnd(10, 50);
-                    let b = MathGen.rnd(10, 50);
-                    if (a === b) b++;
-                    return MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true);
-                }
-                return MathGen.getBasicMath(grade, 5);
+                let range = (grade===1)?20:50*grade; let a = MathGen.rnd(range/2, range), b = MathGen.rnd(range/2, range); if(a===b)b++;
+                return MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true);
             },
+
             formatQ: (q, a, isHebrew = false) => {
                 let options = new Set();
                 options.add(a);
+                let range = Math.max(3, Math.floor(a * 0.2)); 
                 while(options.size < 4) {
-                    let offset = Math.floor(Math.random() * 10) - 5;
+                    let offset = Math.floor(Math.random() * (range * 2)) - range;
                     if (offset === 0) continue;
                     let wrong = a + offset;
                     if (wrong > 0 && wrong !== a) options.add(wrong);
@@ -1072,59 +1044,55 @@
             },
             
             initPlayer: () => {
-                try {
-                    let name = '';
-                    
-                    if (AuthManager.mode === 'user') {
-                        name = AuthManager.currentUser.name;
-                        state.playerName = name;
-                        document.getElementById('hud-name').innerText = name;
-                        
-                        // Mock Data for Cloud User
-                        state = { 
-                            ...state, 
-                            playerName: name, 
-                            maxIslandUnlocked: 2, 
-                            coins: 120,
-                            inventory: ['gal', 'nicole', 'noam'] 
-                        };
-                        
-                        state.isReturning = true;
-                        ui.showScreen('map-screen');
-                        Sound.click();
-                        return;
-                    }
-
-                    // Guest Mode Logic
-                    name = document.getElementById('player-name').value.trim();
-                    if (!name) return alert('נא לכתוב שם');
-                    
-                    const saved = localStorage.getItem('mathSave_' + name);
+                let name = '';
+                
+                if (AuthManager.mode === 'user') {
+                    name = AuthManager.currentUser.name;
                     state.playerName = name;
                     document.getElementById('hud-name').innerText = name;
-                    if (saved) {
-                        state = { ...state, ...JSON.parse(saved) };
-                        if(!state.inventory.includes('noam')) state.inventory.push('noam');
-                        if(!state.consumables || (state.consumables.parrot === 0 && state.consumables.potion === 0)) {
-                            state.consumables = { parrot: 2, potion: 2 }; 
-                        }
-                        if(!state.unlockedAchievements) state.unlockedAchievements = [];
-                        state.isReturning = true;
-                        ui.showScreen('map-screen');
-                    } else {
-                        state.isReturning = false;
-                        state.consumables = { parrot: 2, potion: 2 };
-                        document.getElementById('welcome-name').innerText = name;
-                        ui.showScreen('grade-screen');
-                    }
-                    if(document.getElementById('qty-parrot')) {
-                        document.getElementById('qty-parrot').innerText = state.consumables.parrot;
-                        document.getElementById('qty-potion').innerText = state.consumables.potion;
-                    }
+                    
+                    // Mock Data for Cloud User
+                    state = { 
+                        ...state, 
+                        playerName: name, 
+                        maxIslandUnlocked: 2, 
+                        coins: 120,
+                        inventory: ['gal', 'nicole', 'noam'] 
+                    };
+                    
+                    state.isReturning = true;
+                    ui.showScreen('map-screen');
                     Sound.click();
-                } catch(e) {
-                    alert("שגיאה בהתחלת המשחק: " + e.message);
+                    return;
                 }
+
+                // Guest Mode Logic
+                name = document.getElementById('player-name').value.trim();
+                if (!name) return alert('נא לכתוב שם');
+                
+                const saved = localStorage.getItem('mathSave_' + name);
+                state.playerName = name;
+                document.getElementById('hud-name').innerText = name;
+                if (saved) {
+                    state = { ...state, ...JSON.parse(saved) };
+                    if(!state.inventory.includes('noam')) state.inventory.push('noam');
+                    if(!state.consumables || (state.consumables.parrot === 0 && state.consumables.potion === 0)) {
+                        state.consumables = { parrot: 2, potion: 2 }; 
+                    }
+                    if(!state.unlockedAchievements) state.unlockedAchievements = [];
+                    state.isReturning = true;
+                    ui.showScreen('map-screen');
+                } else {
+                    state.isReturning = false;
+                    state.consumables = { parrot: 2, potion: 2 };
+                    document.getElementById('welcome-name').innerText = name;
+                    ui.showScreen('grade-screen');
+                }
+                if(document.getElementById('qty-parrot')) {
+                    document.getElementById('qty-parrot').innerText = state.consumables.parrot;
+                    document.getElementById('qty-potion').innerText = state.consumables.potion;
+                }
+                Sound.click();
             },
             setGrade: (g) => { state.grade = g; Sound.click(); ui.showScreen('char-select-screen'); ui.renderCharSelect(); },
             selectChar: (id) => {
