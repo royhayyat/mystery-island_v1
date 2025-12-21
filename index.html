@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V5.4 - Updated Navigation)</title>
+    <title>אי המסתורין - הרפתקה בחשבון (V5.5 - Grades 5-6 Added)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2a1b15">
@@ -19,11 +19,11 @@
     <style>
         :root {
             --paper-bg: #e3dac9;
-            --wood-dark: #2a1b15;       
+            --wood-dark: #2a1b15;        
             --wood-light: #8d6e63;      
             --gold: #ffc107;            
             --ancient-gold: #d4af37;
-            --ocean: #004d40;           
+            --ocean: #004d40;            
             --success: #1b5e20;
             --danger: #c62828;
             
@@ -633,6 +633,8 @@
                 <button class="btn" onclick="game.setGrade(2)">כיתה ב'</button>
                 <button class="btn" onclick="game.setGrade(3)">כיתה ג'</button>
                 <button class="btn" onclick="game.setGrade(4)">כיתה ד'</button>
+                <button class="btn" onclick="game.setGrade(5)">כיתה ה'</button>
+                <button class="btn" onclick="game.setGrade(6)">כיתה ו'</button>
             </div>
         </div>
 
@@ -941,6 +943,19 @@
             // לוגיקה מעורבת: מחליטה מאיזו כיתה לקחת את השאלה
             getEffectiveGrade: (actualGrade, level) => {
                 const r = Math.random();
+                
+                // כיתה ה': מתחיל ב-ד', עולה ל-ה'
+                if (actualGrade === 5) {
+                    if (level <= 2 && r < 0.3) return 4;
+                    return 5;
+                }
+
+                // כיתה ו': מתחיל ב-ה', עולה ל-ו'
+                if (actualGrade === 6) {
+                    if (level <= 2 && r < 0.3) return 5;
+                    return 6;
+                }
+
                 // כיתה ב': 30% חזרה על א' בהתחלה, 20% אתגר ג' בסוף
                 if (actualGrade === 2) {
                     if (level <= 3 && r < 0.3) return 1;
@@ -973,12 +988,15 @@
                 if (islandId === 4) return MathGen.getMulDiv(effGrade, level);
                 if (islandId <= 6) {
                     const r = Math.random();
+                    if (effGrade >= 5 && r < 0.6) return MathGen.getMulDiv(effGrade, level); // כיתות גבוהות מקבלות יותר כפל/חילוק מורכב
                     if (r < 0.4) return MathGen.getBasicMath(effGrade, level);
                     if (r < 0.7) return MathGen.getMulDiv(effGrade, level);
                     return MathGen.getWordProblem(effGrade, level);
                 }
                 if (islandId <= 8) return MathGen.getLogic(effGrade, level);
+                
                 const r = Math.random();
+                if (effGrade >= 5) return MathGen.getMulDiv(effGrade, level); // לבוסים בכיתות ה-ו ניתן שאלות אתגר
                 if (r < 0.25) return MathGen.getBasicMath(effGrade, level);
                 if (r < 0.5) return MathGen.getMulDiv(effGrade, level);
                 if (r < 0.75) return MathGen.getWordProblem(effGrade, level);
@@ -990,7 +1008,10 @@
                 if (grade === 1) max = (level < 5) ? 10 : 20;
                 else if (grade === 2) max = 20 + (level * 8);
                 else if (grade === 3) max = 100 + (level * 90);
-                else max = 1000 + (level * 900);
+                else if (grade === 4) max = 1000 + (level * 900);
+                else if (grade === 5) max = 10000 + (level * 2000); // כיתה ה - עשרות אלפים
+                else max = 50000 + (level * 5000); // כיתה ו - מספרים גדולים מאוד
+
                 if (max > 100) max = Math.floor(max / 10) * 10;
 
                 const isAdd = Math.random() > 0.5;
@@ -1013,12 +1034,49 @@
                     return MathGen.formatQ(`${n} + ${n} + ${n} = ?`, n * 3);
                 }
                 
+                // --- כיתות ה'-ו': סדר פעולות חשבון וחזקות ---
+                if (grade >= 5 && Math.random() < 0.6) {
+                    const type = MathGen.rnd(1, 3);
+                    
+                    // סדר פעולות חשבון: כפל קודם לחיבור
+                    if (type === 1) { 
+                        const a = MathGen.rnd(2, 10);
+                        const b = MathGen.rnd(2, 5);
+                        const c = MathGen.rnd(2, 5);
+                        // a + b * c
+                        return MathGen.formatQ(`${a} + ${b} × ${c} = ?`, a + (b * c));
+                    }
+                    // סוגריים
+                    if (type === 2) {
+                        const a = MathGen.rnd(2, 6);
+                        const b = MathGen.rnd(2, 6);
+                        const c = MathGen.rnd(2, 5);
+                        // c * (a + b)
+                        return MathGen.formatQ(`${c} × (${a} + ${b}) = ?`, c * (a + b));
+                    }
+                    // חזקות (כיתה ו') או כפל תלת ספרתי (כיתה ה')
+                    if (type === 3) {
+                        if (grade === 6) {
+                            const base = MathGen.rnd(2, 6);
+                            return MathGen.formatQ(`${base}² = ?`, base * base);
+                        } else {
+                            // כיתה ה': כפל דו ספרתי בעשרות שלמות
+                            const a = MathGen.rnd(2, 9) * 10; // 20, 30...
+                            const b = MathGen.rnd(2, 9);
+                            return MathGen.formatQ(`${a} × ${b} = ?`, a * b);
+                        }
+                    }
+                }
+                
                 let maxFactor = 2 + Math.floor(level * 0.8);
                 if (grade === 2 && maxFactor > 5) maxFactor = 5;
                 if (grade === 3 && maxFactor > 10) maxFactor = 10;
                 if (grade === 4 && maxFactor > 12) maxFactor = 12;
+                if (grade >= 5) maxFactor = 15 + level; // לוח הכפל המורחב
+
                 if (Math.random() > 0.5) { 
                     let n1 = MathGen.rnd(1, maxFactor), n2 = MathGen.rnd(1, maxFactor);
+                    if (grade >= 5 && n1 > 12) n1 = MathGen.rnd(2,9) * 10; 
                     return MathGen.formatQ(`${n1} × ${n2} = ?`, n1 * n2);
                 } else { 
                     let ans = MathGen.rnd(1, maxFactor), n2 = MathGen.rnd(1, maxFactor);
@@ -1030,12 +1088,22 @@
                 const name = MathGen.pick(MathGen.db.names);
                 const item = MathGen.pick(MathGen.db.items);
                 
+                // --- בעיות מילוליות לכיתה ו': אחוזים פשוטים ---
+                if (grade === 6 && Math.random() < 0.4) {
+                    const percent = MathGen.pick([10, 25, 50]);
+                    const whole = MathGen.rnd(2, 20) * 10; // מספרים כמו 40, 100, 200
+                    let ans = (whole * percent) / 100;
+                    return MathGen.formatQ(`כמה הם ${percent}% מתוך ${whole}?`, ans, true);
+                }
+                
                 let limit = 10;
                 if (grade === 1) limit = (level < 5) ? 10 : 20;
                 if (grade === 2) limit = 20 + (level * 3);
                 if (grade >= 3) limit = 50 + (level * 10);
-                if (grade === 4 && level > 5 && Math.random() > 0.5) {
-                    let dist = MathGen.rnd(10, level * 20) * 10;
+                if (grade >= 5) limit = 500 + (level * 100);
+
+                if (grade >= 4 && level > 5 && Math.random() > 0.5) {
+                    let dist = MathGen.rnd(10, level * (grade*5)) * 10;
                     let extra = MathGen.rnd(10, level * 10) * 10;
                     return MathGen.formatQ(`דני רץ ${dist} מטר ואז הלך עוד ${extra} מטר. כמה עבר סה"כ?`, dist + extra, true);
                 }
@@ -1053,16 +1121,36 @@
 
             getLogic: (grade, level) => {
                 const type = MathGen.rnd(1, 3);
+                
+                // --- אלגברה לכיתות ה'-ו' ---
+                if (grade >= 5) {
+                    // מציאת נעלם: 2X = 20
+                    if (type === 1) {
+                        const x = MathGen.rnd(2, 12);
+                        const multiplier = MathGen.rnd(2, 9);
+                        return MathGen.formatQ(`אם ${multiplier}X = ${x*multiplier}, כמה שווה X?`, x, true);
+                    }
+                    // מציאת נעלם עם חיבור: X + 15 = 40
+                    if (type === 2) {
+                        const x = MathGen.rnd(5, 50);
+                        const add = MathGen.rnd(10, 100);
+                        return MathGen.formatQ(`X + ${add} = ${x+add}. כמה שווה X?`, x, true);
+                    }
+                }
+
                 if (type === 1) { 
                     let start = MathGen.rnd(1, 10 + level); let jump = MathGen.rnd(1, grade===1?2:2+Math.floor(level/3));
+                    if (grade >= 5) jump = jump * 2;
                     return MathGen.formatQ(`${start}, ${start+jump}, ${start+jump*2}, ?`, start+jump*3);
                 }
                 if (type === 2) { 
                     let max = (grade===1)?10:10*grade+(level*2);
+                    if (grade >= 5) max = 500;
                     let a = MathGen.rnd(1, max), b = MathGen.rnd(1, max);
                     return MathGen.formatQ(`${a} + ? = ${a+b}`, b);
                 }
                 let range = (grade===1)?20:50*grade;
+                if (grade >= 5) range = 5000;
                 let a = MathGen.rnd(range/2, range), b = MathGen.rnd(range/2, range); if(a===b)b++;
                 return MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true);
             },
@@ -1071,6 +1159,7 @@
                 let options = new Set();
                 options.add(a);
                 let range = Math.max(3, Math.floor(a * 0.2)); 
+                if (range < 3) range = 3;
                 while(options.size < 4) {
                     let offset = Math.floor(Math.random() * (range * 2)) - range;
                     if (offset === 0) continue;
@@ -1191,7 +1280,7 @@
                         const div = document.createElement('div');
                         div.className = 'leaderboard-item';
                         if (p.isMe) div.style.border = "2px solid var(--ocean)";
-                         
+                          
                         div.innerHTML = `
                             <div class="rank-badge ${rankClass}">${rank}</div>
                             <div class="player-info">
@@ -1355,7 +1444,7 @@
                         document.querySelectorAll('.feedback').forEach(e => e.style.display = 'none');
                         if (state.viewingIndex === state.questionIndex) {
                             state.questionIndex++;
-        
+       
                             if(state.questionIndex >= CONFIG.questionsPerLevel) game.levelComplete();
                             else { game.generateNextQuestion(); ui.updateGameUI(); }
                         } else {
@@ -1582,7 +1671,7 @@
             updateGameHUD: () => { document.getElementById('game-coins').innerText = state.coins;
             },
             renderMap: () => {
-                document.getElementById('hud-grade').innerText = ['א','ב','ג','ד'][state.grade-1];
+                document.getElementById('hud-grade').innerText = ['א','ב','ג','ד','ה','ו'][state.grade-1];
                 document.getElementById('hud-coins').innerText = state.coins;
                 const c = document.getElementById('islands-grid'); c.innerHTML='';
                 CONFIG.islands.forEach((isl, i) => {
