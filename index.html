@@ -1160,12 +1160,26 @@
                 options.add(a);
                 let range = Math.max(3, Math.floor(a * 0.2)); 
                 if (range < 3) range = 3;
+                
+                let attempts = 0; // מניעת לולאה אינסופית
                 while(options.size < 4) {
-                    let offset = Math.floor(Math.random() * (range * 2)) - range;
+                    attempts++;
+                    // הרחבת הטווח אם הלולאה מתקשה למצוא מספרים ייחודיים חיוביים
+                    if (attempts > 20) {
+                        range++;
+                    }
+                    
+                    // חישוב offset שמכסה את הטווח המלא באופן שווה
+                    let offset = Math.floor(Math.random() * (range * 2 + 1)) - range;
                     if (offset === 0) continue;
+                    
                     let wrong = a + offset;
-                    if (wrong > 0 && wrong !== a) options.add(wrong);
+                    // מוודא שהתשובה חיובית ושונה מהתשובה הנכונה
+                    if (wrong > 0 && wrong !== a) {
+                        options.add(wrong);
+                    }
                 }
+                
                 return {
                     q: q,
                     a: a,
