@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>אי המסתורין - הרפתקה בחשבון (V5.5 - Grades 5-6 Added)</title>
+    <title>אי המסתורין - הרפתקה בחשבון</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2a1b15">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="אי המסתורין">
-    <link rel="apple-touch-icon" href="maps/island1.jpg">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +51,7 @@
 
         #game-container {
             width: 100vw;
-            height: 100vh; display: flex; justify-content: center; align-items: center;
+            height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center;
             position: relative;
         }
 
@@ -449,6 +450,16 @@
         #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 50; }
         
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%);
+            background: var(--wood-dark); color: var(--gold); border: 3px solid var(--ancient-gold);
+            border-radius: 12px; padding: 10px 25px; font-family: var(--font-hebrew-block); font-size: 1.3rem;
+            z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            pointer-events: none; text-align: center; max-width: 90%;
+            opacity: 0; visibility: hidden; transition: transform 0.4s, opacity 0.4s, visibility 0.4s;
+        }
+        #toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
+
         #dev-panel { display: none;
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: var(--paper-bg); border: 5px solid var(--wood-dark); padding: 20px;
             z-index: 10001; text-align: right; }
@@ -522,8 +533,7 @@
 </head>
 <body>
 
-    <div style="position: fixed; top: 0; right: 0; width: 80px; height: 80px; z-index: 10000;"
-        onclick="dev.toggle()"></div>
+    <div id="toast"></div>
 
     <div id="dev-panel">
         <h3 style="margin-top:0; text-align: center;">🔧 בקרת מפתח</h3>
@@ -560,9 +570,8 @@
     <div id="login-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 style="font-family: 'Rubik Wet Paint'; color: var(--wood-dark); margin-top: 0;">כניסה לגילדה</h2>
-            <p style="font-family: 'Amatic SC'; font-size: 1.4rem; color: var(--wood-dark);">הכנס פרטים לשמירה בענן</p>
+            <p style="font-family: 'Amatic SC'; font-size: 1.4rem; color: var(--wood-dark);">הכנס אימייל כדי לשמור את ההתקדמות שלך</p>
             <input type="email" id="login-email" placeholder="אימייל של פיראט" style="width:90%">
-            <input type="password" id="login-pass" placeholder="סיסמה סודית" style="width:90%; margin-top:10px;">
             <div style="display: flex;
             justify-content: space-between; margin-top: 20px;">
                 <button onclick="AuthManager.mockLogin()" class="auth-btn" style="width: 48%;
@@ -571,7 +580,7 @@
                 width: 48%; font-size: 1.2rem; border-color:#7f8c8d;">ביטול</button>
             </div>
             <div style="font-size: 0.8rem;
-            margin-top: 15px; opacity: 0.6;">(התחברות זו היא סימולציה)</div>
+            margin-top: 15px; opacity: 0.6;">(ההתקדמות נשמרת במכשיר זה)</div>
         </div>
     </div>
 
@@ -582,11 +591,11 @@
         color: var(--gold);">בונוס רצף! +10 💰</div>
 
         <div id="video-screen" class="screen">
-            <video id="video-player" playsinline onerror="game.skipVideo()">
-                <source src="moves/intro.mp4" type="video/mp4">
+            <video id="video-player" playsinline preload="auto">
+                <source src="moves/intro.mp4" type="video/mp4" onerror="typeof game !== 'undefined' && game.skipVideo()">
             </video>
             <button class="btn-skip" onclick="game.skipVideo()">דלג על הסרטון >></button>
-            <button id="start-video-btn" class="btn btn-success" onclick="game.playVideo()" style="position:absolute;
+            <button id="start-video-btn" class="btn btn-success" onclick="game.resumeVideo()" style="position:absolute;
             top:50%; left:50%; transform:translate(-50%, -50%); display:none; padding:15px 40px; font-size:2.5rem; z-index:100;">התחל בהרפתקה! ▶️</button>
         </div>
 
@@ -595,7 +604,7 @@
             <div id="auth-bar" class="auth-container">
                 <div id="guest-view">
                     <span class="auth-text">🏴‍☠️ אורח (שמירה במכשיר)</span>
-                    <button onclick="AuthManager.openLoginModal()" class="auth-btn">התחבר לענן ☁️</button>
+                    <button onclick="AuthManager.openLoginModal()" class="auth-btn">התחבר עם אימייל ✉️</button>
                 </div>
                 <div id="user-view" class="hidden">
                     <span class="auth-text" id="user-greeting">👋 שלום!</span>
@@ -614,7 +623,7 @@
             </div>
             <div id="user-start-section" class="hidden" style="text-align: center;
             margin-top: 20px;">
-                <h3>מוכן להמשיך מהענן?</h3>
+                <h3>מוכן להמשיך?</h3>
                 <button class="btn btn-success" style="padding:15px 50px;
                 font-size: 2.2rem;" onclick="game.initPlayer()">המשך במשחק ▶️</button>
             </div>
@@ -641,7 +650,7 @@
         <div id="char-select-screen" class="screen">
             <h1>מי הגיבור שלך?</h1>
             <div id="char-grid" class="grid-container"></div>
-            <button class="btn btn-secondary" style="margin-top:auto" onclick="ui.showScreen('grade-screen')">חזור</button>
+            <button class="btn btn-secondary" style="margin-top:auto" onclick="ui.showScreen(state.isReturning ? 'map-screen' : 'grade-screen')">חזור</button>
         </div>
 
         <div id="map-screen" class="screen">
@@ -651,14 +660,14 @@
                 <span>💰 <span id="hud-coins" style="font-family: var(--font-num);">0</span></span>
                 <div>
                     <button onclick="ui.showScreen('achievements-screen')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🏆</button>
-                    <button onclick="ui.showScreen('shop-screen')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🛒</button>
+                    <button onclick="previousScreen='map-screen'; ui.showScreen('shop-screen'); ui.renderShop('chars')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🛒</button>
                 </div>
             </div>
             <h2>מפת האיים</h2>
             <div id="islands-grid" class="grid-container"></div>
             
             <div style="margin-top: auto; width: 100%; display: flex; justify-content: center; gap: 15px; padding: 10px; border-top: 2px dashed var(--wood-light);">
-                <button class="btn btn-secondary" style="font-size: 1.2rem; padding: 8px 15px;" onclick="ui.showScreen('char-select-screen')">
+                <button class="btn btn-secondary" style="font-size: 1.2rem; padding: 8px 15px;" onclick="ui.showScreen('char-select-screen'); ui.renderCharSelect()">
                     🎭 החלף דמות
                 </button>
                 <button class="btn btn-danger" style="font-size: 1.2rem; padding: 8px 15px;" onclick="game.logoutAndExit()">
@@ -794,7 +803,7 @@
             { id: 'first_blood', name: 'התחלה טובה', desc: 'ענה על שאלה ראשונה נכון', icon: '🐣', req: (s) => s.totalCorrect >= 1 },
             { id: 'rich', name: 'הפיראט העשיר', desc: 'צבור 100 מטבעות', icon: '💰', req: (s) => s.coins >= 100 },
             { id: 'streak10', name: 'על הגל', desc: 'רצף של 10 תשובות נכונות', icon: '🔥', req: (s) => s.maxStreak >= 10 },
-            { id: 'island1', name: 'מלך הג\'ונגל', desc: 'סיים את האי הראשון', icon: '🌴', req: (s) => s.maxIslandUnlocked >= 1 && s.maxLevelReached > 1 },
+            { id: 'island1', name: 'מלך הג\'ונגל', desc: 'סיים את האי הראשון', icon: '🌴', req: (s) => s.maxIslandUnlocked >= 1 },
             { id: 'shopper', name: 'בזבזן', desc: 'קנה דמות חדשה', icon: '🛍️', req: (s) => s.inventory.length > 3 },
             { id: 'brain', name: 'גאון חשבון', desc: 'פתר 50 תרגילים', icon: '🧠', req: (s) => s.totalCorrect >= 50 }
         ];
@@ -844,21 +853,62 @@
                 { id: 'potion', name: 'שיקוי מזל', desc: 'פי 2 מטבעות (5 תורות)', price: 30, icon: '🧪' }
             ]
         };
-        let state = {
+        // Fields that belong to a single play session and must never be written to a save
+        const TRANSIENT_KEYS = ['levelQuestions', 'questionIndex', 'viewingIndex', 'sessionEarnings', 'devMode', 'videoCallback', 'isReturning', 'answerLock'];
+        const createDefaultState = () => ({
             playerName: '', grade: 1, currentIslandIndex: 0, currentLevel: 1, maxIslandUnlocked: 0, maxLevelReached: 1,
             coins: 0, inventory: ['gal', 'nicole', 'noam'], selectedChar: 'gal', questionIndex: 0, sessionEarnings: 0,
             levelQuestions: [], viewingIndex: 0, isReturning: false,
             devMode: false,
             streak: 0, maxStreak: 0, totalCorrect: 0, unlockedAchievements: [],
-            consumables: { parrot: 0, potion: 0 },
+            consumables: { parrot: 2, potion: 2 },
             activePotionMoves: 0,
-            videoCallback: null
+            videoCallback: null,
+            answerLock: false
+        });
+        let state = createDefaultState();
+
+        const Storage = {
+            prefix: 'mathSave_',
+            get: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
+            set: (key, val) => { try { localStorage.setItem(key, val); return true; } catch(e) { return false; } },
+            remove: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
+            loadPlayer: (name) => {
+                const raw = Storage.get(Storage.prefix + name);
+                if (!raw) return null;
+                try { return JSON.parse(raw); } catch(e) { return null; }
+            },
+            allPlayers: () => {
+                const players = [];
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith(Storage.prefix)) {
+                            const data = Storage.loadPlayer(key.slice(Storage.prefix.length));
+                            if (data) players.push({ name: key.slice(Storage.prefix.length), data: data });
+                        }
+                    }
+                } catch(e) {}
+                return players;
+            }
         };
+
         // --- AUTH MANAGER ---
+        // Email login is a named profile saved on this device (there is no server).
         const AuthManager = {
             mode: 'guest', // 'guest' | 'user'
             currentUser: null,
+            sessionKey: 'mathCurrentUser',
 
+            restore: () => {
+                const raw = Storage.get(AuthManager.sessionKey);
+                if (!raw) return;
+                try {
+                    const u = JSON.parse(raw);
+                    if (u && u.name) { AuthManager.currentUser = u; AuthManager.mode = 'user'; }
+                } catch(e) {}
+                AuthManager.updateUI();
+            },
             openLoginModal: () => {
                 document.getElementById('login-modal').style.display = 'flex';
                 document.getElementById('login-email').focus();
@@ -867,27 +917,27 @@
                 document.getElementById('login-modal').style.display = 'none';
             },
             mockLogin: () => {
-                const email = document.getElementById('login-email').value;
-                if (!email.includes('@')) { alert("אנא הכנס כתובת אימייל תקינה של פיראט!"); return;
+                const email = document.getElementById('login-email').value.trim();
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert("אנא הכנס כתובת אימייל תקינה של פיראט!"); return;
                 }
-                
-                // Simulating a logged in user
                 AuthManager.currentUser = { email: email, name: email.split('@')[0] };
                 AuthManager.mode = 'user';
+                Storage.set(AuthManager.sessionKey, JSON.stringify(AuthManager.currentUser));
                 AuthManager.updateUI();
                 AuthManager.closeLoginModal();
-                
-                // Update start screen info
                 game.initPlayer();
+            },
+            signOut: () => {
+                AuthManager.mode = 'guest';
+                AuthManager.currentUser = null;
+                Storage.remove(AuthManager.sessionKey);
+                AuthManager.updateUI();
+                state = createDefaultState();
+                document.getElementById('player-name').value = '';
             },
             logout: () => {
                 if(!confirm("האם אתה בטוח?")) return;
-                AuthManager.mode = 'guest';
-                AuthManager.currentUser = null;
-                AuthManager.updateUI();
-                // Clear state
-                state.playerName = '';
-                document.getElementById('player-name').value = '';
+                AuthManager.signOut();
             },
             updateUI: () => {
                 const guestView = document.getElementById('guest-view');
@@ -931,11 +981,12 @@
 
         const MathGen = {
             db: {
-                names: ['דנה', 'יוסי', 'עומר', 'נועה', 'רון', 'מיה', 'גיא', 'שירה', 'איתי', 'תמר', 'עידו', 'אורי', 'אלה', 'דניאל', 'ליאן'],
+                // f = female (affects verb and pronoun forms)
+                names: [{n:'דנה',f:1}, {n:'יוסי',f:0}, {n:'עומר',f:0}, {n:'נועה',f:1}, {n:'רון',f:0}, {n:'מיה',f:1}, {n:'גיא',f:0}, {n:'שירה',f:1}, {n:'איתי',f:0}, {n:'תמר',f:1}, {n:'עידו',f:0}, {n:'אורי',f:0}, {n:'אלה',f:1}, {n:'דניאל',f:0}, {n:'ליאן',f:1}],
                 items: ['תפוחים', 'גולות', 'בלונים', 'מחברות', 'עפרונות', 'סוכריות', 'מדבקות', 'קלפים', 'בובות', 'מטבעות'],
-                places: ['בחנות', 'בכיתה', 'בגינה', 'באוטובוס', 'בספרייה', 'במסיבה', 'במגרש', 'בארמון'],
-                actions_add: ['מצא', 'קיבל', 'קנה', 'הוסיף', 'אסף', 'זכה ב'],
-                actions_sub: ['איבד', 'נתן', 'אכל', 'זרק', 'שבר', 'הביא לחבר']
+                // [male, female] — each sentence already ends right before the number
+                actions_add: [['מצא עוד','מצאה עוד'], ['קיבל עוד','קיבלה עוד'], ['קנה עוד','קנתה עוד'], ['הוסיף עוד','הוסיפה עוד'], ['אסף עוד','אספה עוד'], ['זכה בעוד','זכתה בעוד']],
+                actions_sub: [['איבד','איבדה'], ['נתן לחבר','נתנה לחברה'], ['חילק','חילקה'], ['מכר','מכרה'], ['השאיל','השאילה'], ['תרם','תרמה']]
             },
             rnd: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
             pick: (arr) => arr[Math.floor(Math.random() * arr.length)],
@@ -1091,7 +1142,8 @@
                 // --- בעיות מילוליות לכיתה ו': אחוזים פשוטים ---
                 if (grade === 6 && Math.random() < 0.4) {
                     const percent = MathGen.pick([10, 25, 50]);
-                    const whole = MathGen.rnd(2, 20) * 10; // מספרים כמו 40, 100, 200
+                    // 25% צריך מספר שמתחלק ב-4 כדי שהתשובה תהיה שלמה
+                    const whole = percent === 25 ? MathGen.rnd(1, 10) * 20 : MathGen.rnd(2, 20) * 10;
                     let ans = (whole * percent) / 100;
                     return MathGen.formatQ(`כמה הם ${percent}% מתוך ${whole}?`, ans, true);
                 }
@@ -1105,17 +1157,21 @@
                 if (grade >= 4 && level > 5 && Math.random() > 0.5) {
                     let dist = MathGen.rnd(10, level * (grade*5)) * 10;
                     let extra = MathGen.rnd(10, level * 10) * 10;
-                    return MathGen.formatQ(`דני רץ ${dist} מטר ואז הלך עוד ${extra} מטר. כמה עבר סה"כ?`, dist + extra, true);
+                    const runner = MathGen.pick(MathGen.db.names);
+                    const ran = runner.f ? 'רצה' : 'רץ', walked = runner.f ? 'הלכה' : 'הלך', passed = runner.f ? 'עברה' : 'עבר';
+                    return MathGen.formatQ(`${runner.n} ${ran} ${dist} מטר ואז ${walked} עוד ${extra} מטר. כמה ${passed} סה"כ?`, dist + extra, true);
                 }
 
-                let n1 = MathGen.rnd(3, limit), n2 = MathGen.rnd(2, limit/2);
+                let n1 = MathGen.rnd(3, limit), n2 = MathGen.rnd(2, Math.floor(limit/2));
+                const g = name.f ? 1 : 0;
+                const pronoun = g ? 'היא' : 'הוא', toThem = g ? 'לה' : 'לו';
                 if (Math.random() > 0.5) { 
-                    let action = MathGen.pick(MathGen.db.actions_add);
-                    return MathGen.formatQ(`ל${name} היו ${n1} ${item}. הוא ${action} עוד ${n2}. כמה יש לו עכשיו?`, n1 + n2, true);
+                    let action = MathGen.pick(MathGen.db.actions_add)[g];
+                    return MathGen.formatQ(`ל${name.n} היו ${n1} ${item}. ${pronoun} ${action} ${n2}. כמה יש ${toThem} עכשיו?`, n1 + n2, true);
                 } else { 
                     let total = n1 + n2;
-                    let action = MathGen.pick(MathGen.db.actions_sub);
-                    return MathGen.formatQ(`ל${name} היו ${total} ${item}. הוא ${action} ${n2}. כמה נשארו?`, n1, true);
+                    let action = MathGen.pick(MathGen.db.actions_sub)[g];
+                    return MathGen.formatQ(`ל${name.n} היו ${total} ${item}. ${pronoun} ${action} ${n2}. כמה נשארו ${toThem}?`, n1, true);
                 }
             },
 
@@ -1152,17 +1208,19 @@
                 let range = (grade===1)?20:50*grade;
                 if (grade >= 5) range = 5000;
                 let a = MathGen.rnd(range/2, range), b = MathGen.rnd(range/2, range); if(a===b)b++;
-                return MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true);
+                // התשובות האפשריות הן בדיוק שני המספרים מהשאלה
+                return MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true, [a, b]);
             },
 
-            formatQ: (q, a, isHebrew = false) => {
+            formatQ: (q, a, isHebrew = false, fixedOptions = null) => {
                 let options = new Set();
                 options.add(a);
+                if (fixedOptions) fixedOptions.forEach(o => options.add(o));
                 let range = Math.max(3, Math.floor(a * 0.2)); 
                 if (range < 3) range = 3;
                 
                 let attempts = 0; // מניעת לולאה אינסופית
-                while(options.size < 4) {
+                while(!fixedOptions && options.size < 4) {
                     attempts++;
                     // הרחבת הטווח אם הלולאה מתקשה למצוא מספרים ייחודיים חיוביים
                     if (attempts > 20) {
@@ -1187,7 +1245,8 @@
                     options: Array.from(options).sort(() => Math.random() - 0.5),
                     userAnswer: null, 
                     isCorrect: null, 
-                    failedAttempt: false
+                    failedAttempt: false,
+                    hiddenOptions: []
                 };
             }
         };
@@ -1196,25 +1255,20 @@
             // New function for logout and exit
             logoutAndExit: () => {
                 if(confirm("האם אתה בטוח שברצונך לצאת ולהחליף שחקן?")) {
-                    // Manual logout logic to ensure sync
-                    AuthManager.mode = 'guest';
-                    AuthManager.currentUser = null;
-                    AuthManager.updateUI();
-                    state.playerName = '';
-                    document.getElementById('player-name').value = '';
-                    // Go to start screen
+                    game.save();
+                    AuthManager.signOut();
                     ui.showScreen('start-screen');
                 }
             },
 
+            resumeVideo: () => {
+                // Keeps the pending callback (e.g. "go to map" after a character video)
+                const v = document.getElementById('video-player');
+                document.getElementById('start-video-btn').style.display = 'none';
+                const p = v.play();
+                if (p !== undefined) p.catch(() => game.skipVideo());
+            },
             playVideo: (src = 'moves/intro.mp4', callback = null) => {
-                if (callback === true) { // Resume
-                     const v = document.getElementById('video-player');
-                     v.play();
-                     document.getElementById('start-video-btn').style.display = 'none';
-                     return;
-                }
-                
                 state.videoCallback = callback;
                 const v = document.getElementById('video-player');
                 
@@ -1240,7 +1294,11 @@
             },
             skipVideo: () => { 
                 const v = document.getElementById('video-player');
+                // Errors from the <source> can fire after we already left the video screen
+                if (!document.getElementById('video-screen').classList.contains('active')) return;
                 v.pause(); 
+                v.onended = null;
+                document.getElementById('start-video-btn').style.display = 'none';
                 if (state.videoCallback) {
                     const cb = state.videoCallback;
                     state.videoCallback = null;
@@ -1254,32 +1312,11 @@
                 const list = document.getElementById('saved-players-list');
                 const title = document.getElementById('leaderboard-title');
                 list.innerHTML = '';
-                let players = [];
-                if (AuthManager.mode === 'user') {
-                    // MOCK CLOUD VIEW
-                    title.innerText = '☁️ טבלת ענן עולמית';
-                    // Fake data for the cloud view
-                    players = [
-                        { name: AuthManager.currentUser.name, data: { maxIslandUnlocked: 2, maxLevelReached: 5, coins: 120 }, isMe: true },
-                        { name: "קפטן ג'ק", data: { maxIslandUnlocked: 9, maxLevelReached: 10, coins: 9999 }, isMe: false },
-                        { name: "שודדת הים מאיה", data: { maxIslandUnlocked: 5, maxLevelReached: 3, coins: 450 }, isMe: false }
-                    ];
-                } else {
-                    // LOCAL STORAGE VIEW
-                    title.innerText = '📱 שחקנים במכשיר זה';
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.startsWith('mathSave_')) {
-                            try {
-                                const data = JSON.parse(localStorage.getItem(key));
-                                players.push({ name: key.replace('mathSave_', ''), data: data, isMe: false });
-                            } catch(e) {}
-                        }
-                    }
-                }
+                title.innerText = '📱 שחקנים במכשיר זה';
+                const myName = AuthManager.mode === 'user' ? AuthManager.currentUser.name : state.playerName;
+                const players = Storage.allPlayers().map(p => ({ ...p, isMe: !!myName && p.name === myName }));
 
-                // Sorting
-                players.sort((a, b) => b.data.coins - a.data.coins);
+                players.sort((a, b) => (b.data.coins || 0) - (a.data.coins || 0));
                 if(players.length === 0) {
                     list.innerHTML = '<p>עדיין אין שחקנים ברשימה.</p>';
                 } else {
@@ -1294,42 +1331,45 @@
                         const div = document.createElement('div');
                         div.className = 'leaderboard-item';
                         if (p.isMe) div.style.border = "2px solid var(--ocean)";
-                          
                         div.innerHTML = `
                             <div class="rank-badge ${rankClass}">${rank}</div>
                             <div class="player-info">
-                                <div class="player-name-text" onclick="game.loadSpecificPlayer('${p.name}')">
-                                    ${medal} ${p.name} ${p.isMe ? '(אתה)' : ''}
-                                </div>
-                                <div class="player-stats">
-                                    אי ${p.data.maxIslandUnlocked + 1} | שלב ${p.data.maxLevelReached} |
-                                    💰 ${p.data.coins}
-                                </div>
+                                <div class="player-name-text"></div>
+                                <div class="player-stats"></div>
                             </div>
-                            ${(!p.isMe && AuthManager.mode === 'guest') ? `<button class="delete-btn" onclick="game.deletePlayer('${p.name}')">🗑️</button>` : ''}
                         `;
+                        // Names are user text: set via textContent so quotes like ג'וני can't break anything
+                        const nameEl = div.querySelector('.player-name-text');
+                        nameEl.textContent = `${medal} ${p.name} ${p.isMe ? '(אתה)' : ''}`;
+                        nameEl.onclick = () => game.loadSpecificPlayer(p.name);
+                        div.querySelector('.player-stats').textContent =
+                            `אי ${(p.data.maxIslandUnlocked || 0) + 1} | שלב ${p.data.maxLevelReached || 1} | 💰 ${p.data.coins || 0}`;
+                        if (!p.isMe) {
+                            const del = document.createElement('button');
+                            del.className = 'delete-btn';
+                            del.textContent = '🗑️';
+                            del.onclick = () => game.deletePlayer(p.name);
+                            div.appendChild(del);
+                        }
                         list.appendChild(div);
                     });
                 }
                 document.getElementById('load-game-modal').style.display = 'flex';
             },
             loadSpecificPlayer: (name) => {
-                if (AuthManager.mode === 'user' && name !== AuthManager.currentUser.name) return;
-                // Can't play others in cloud
-                
-                if (AuthManager.mode === 'guest') {
-                    document.getElementById('player-name').value = name;
-                    game.initPlayer();
+                if (AuthManager.mode === 'user') {
+                    if (name !== AuthManager.currentUser.name) return alert('כדי לשחק כשחקן אחר צריך קודם להתנתק');
                 } else {
-                    // For cloud, just start
-                    game.initPlayer();
+                    document.getElementById('player-name').value = name;
                 }
                 document.getElementById('load-game-modal').style.display = 'none';
+                game.initPlayer();
             },
             deletePlayer: (name) => {
                 const code = prompt("הכנס קוד מנהל למחיקה:");
+                if (code === null) return;
                 if(code === "AAA") {
-                    localStorage.removeItem('mathSave_' + name);
+                    Storage.remove(Storage.prefix + name);
                     game.openLoadMenu(); // Refresh
                 } else {
                     alert("סיסמה שגויה!");
@@ -1337,58 +1377,46 @@
             },
             
             initPlayer: () => {
-                let name = '';
-                if (AuthManager.mode === 'user') {
-                    name = AuthManager.currentUser.name;
-                    state.playerName = name;
-                    document.getElementById('hud-name').innerText = name;
-                    
-                    // Mock Data for Cloud User
-                    state = { 
-                        ...state, 
-                        playerName: name, 
-                        maxIslandUnlocked: 2, 
-                        coins: 120,
-                        inventory: ['gal', 'nicole', 'noam'] 
-                    };
-                    state.isReturning = true;
-                    ui.showScreen('map-screen');
-                    Sound.click();
-                    return;
-                }
-
-                // Guest Mode Logic
-                name = document.getElementById('player-name').value.trim();
+                const name = AuthManager.mode === 'user'
+                    ? AuthManager.currentUser.name
+                    : document.getElementById('player-name').value.trim();
                 if (!name) return alert('נא לכתוב שם');
-                
-                const saved = localStorage.getItem('mathSave_' + name);
+
+                // Always start from a clean state so one player's progress never leaks into another's
+                const saved = Storage.loadPlayer(name);
+                state = createDefaultState();
+                if (saved) {
+                    TRANSIENT_KEYS.forEach(k => delete saved[k]);
+                    state = { ...state, ...saved };
+                    if (!Array.isArray(state.inventory)) state.inventory = ['gal', 'nicole', 'noam'];
+                    ['gal', 'nicole', 'noam'].forEach(id => { if (!state.inventory.includes(id)) state.inventory.push(id); });
+                    if (!state.consumables) state.consumables = { parrot: 2, potion: 2 };
+                    if (!Array.isArray(state.unlockedAchievements)) state.unlockedAchievements = [];
+                    if (!CONFIG.characters.some(c => c.id === state.selectedChar)) state.selectedChar = 'gal';
+                    if (!(state.grade >= 1 && state.grade <= 6)) state.grade = 1;
+                }
                 state.playerName = name;
                 document.getElementById('hud-name').innerText = name;
+
                 if (saved) {
-                    state = { ...state, ...JSON.parse(saved) };
-                    if(!state.inventory.includes('noam')) state.inventory.push('noam');
-                    if(!state.consumables || (state.consumables.parrot === 0 && state.consumables.potion === 0)) {
-                        state.consumables = { parrot: 2, potion: 2 };
-                    }
-                    if(!state.unlockedAchievements) state.unlockedAchievements = [];
                     state.isReturning = true;
                     ui.showScreen('map-screen');
                 } else {
                     state.isReturning = false;
-                    state.consumables = { parrot: 2, potion: 2 };
                     document.getElementById('welcome-name').innerText = name;
                     ui.showScreen('grade-screen');
-                }
-                if(document.getElementById('qty-parrot')) {
-                    document.getElementById('qty-parrot').innerText = state.consumables.parrot;
-                    document.getElementById('qty-potion').innerText = state.consumables.potion;
                 }
                 Sound.click();
             },
             setGrade: (g) => { state.grade = g; Sound.click();
             ui.showScreen('char-select-screen'); ui.renderCharSelect(); },
             selectChar: (id) => {
+                if (!state.inventory.includes(id)) {
+                    const c = CONFIG.characters.find(x => x.id === id);
+                    return alert(`הדמות הזאת נעולה 🔒 אפשר לקנות אותה בחנות ב-${c.price} מטבעות`);
+                }
                 state.selectedChar = id;
+                state.isReturning = true;
                 Sound.click();
                 let videoFile;
                 if (id === 'gal') videoFile = 'moves/Gal_intro.mp4';
@@ -1399,10 +1427,10 @@
                 game.playVideo(videoFile, () => ui.showScreen('map-screen'));
             },
             save: () => { 
-                if(AuthManager.mode === 'guest' && state.playerName) {
-                    localStorage.setItem('mathSave_' + state.playerName, JSON.stringify(state));
-                }
-                // If cloud, we would save to firebase here
+                if (!state.playerName) return;
+                const data = { ...state };
+                TRANSIENT_KEYS.forEach(k => delete data[k]);
+                Storage.set(Storage.prefix + state.playerName, JSON.stringify(data));
             },
             enterIsland: (idx) => {
                 if(idx > state.maxIslandUnlocked) return;
@@ -1416,6 +1444,8 @@
                 ui.showStory(StoryGen.getStory(currentIslandId, lvl), CONFIG.islands[state.currentIslandIndex].levels[lvl-1].name);
             },
             startLevel: () => {
+                game.cancelPendingAdvance();
+                state.answerLock = false;
                 state.questionIndex = 0;
                 state.viewingIndex = 0; state.levelQuestions = []; state.sessionEarnings = 0; 
                 game.generateNextQuestion(); 
@@ -1427,9 +1457,15 @@
                 const q = MathGen.generate(CONFIG.islands[state.currentIslandIndex].type, state.grade, state.currentLevel, state.questionIndex);
                 state.levelQuestions.push(q); state.viewingIndex = state.questionIndex;
             },
+            pendingAdvance: null,
+            cancelPendingAdvance: () => {
+                if (game.pendingAdvance) { clearTimeout(game.pendingAdvance); game.pendingAdvance = null; }
+                state.answerLock = false;
+            },
             checkAnswer: (val) => {
-                const currentQ = state.levelQuestions[state.viewingIndex];
-                if(currentQ.userAnswer !== null) return; 
+                const answeredIdx = state.viewingIndex;
+                const currentQ = state.levelQuestions[answeredIdx];
+                if(!currentQ || currentQ.userAnswer !== null || state.answerLock) return; 
                 
                 if(Number(val) === Number(currentQ.a)) {
                     Sound.correct();
@@ -1452,85 +1488,92 @@
                             setTimeout(()=>b.style.display='none', 1500);
                         }
                     }
-                    game.checkAchievements();
                     currentQ.userAnswer = val; currentQ.isCorrect = true;
-                    setTimeout(() => {
-                        document.querySelectorAll('.feedback').forEach(e => e.style.display = 'none');
-                        if (state.viewingIndex === state.questionIndex) {
+                    game.checkAchievements();
+                    game.save();
+                    ui.updateGameUI();
+                    // Block further clicks until we move on, so a fast double-tap can't skip anything
+                    state.answerLock = true;
+                    game.pendingAdvance = setTimeout(() => {
+                        game.pendingAdvance = null;
+                        state.answerLock = false;
+                        document.getElementById('feedback-correct').style.display = 'none';
+                        if (!document.getElementById('game-screen').classList.contains('active')) return;
+                        // Advance based on which question was answered, not where the player is looking now
+                        if (answeredIdx === state.questionIndex) {
                             state.questionIndex++;
-       
-                            if(state.questionIndex >= CONFIG.questionsPerLevel) game.levelComplete();
-                            else { game.generateNextQuestion(); ui.updateGameUI(); }
-                        } else {
-                            ui.updateGameUI(); 
+                            if(state.questionIndex >= CONFIG.questionsPerLevel) { game.levelComplete(); return; }
+                            game.generateNextQuestion();
                         }
+                        ui.updateGameUI();
                     }, 800);
                 } else {
                     Sound.wrong();
-                    document.getElementById('feedback-wrong').style.display = 'block';
+                    const fw = document.getElementById('feedback-wrong');
+                    fw.style.display = 'block';
                     currentQ.failedAttempt = true; 
+                    currentQ.wrongPicks = [...(currentQ.wrongPicks || []), val];
                     state.streak = 0; // Reset streak
-                    setTimeout(() => { document.querySelectorAll('.feedback').forEach(e => e.style.display = 'none'); }, 600);
+                    setTimeout(() => { fw.style.display = 'none'; }, 600);
+                    ui.updateGameUI();
                 }
                 ui.updateGameHUD();
             },
             usePowerUp: (type) => {
-                if (state.consumables[type] > 0) {
-                    if (type === 'parrot') {
-                        state.consumables.parrot--;
-                        const currentQ = state.levelQuestions[state.viewingIndex];
-                        const buttons = Array.from(document.querySelectorAll('.answer-btn'));
-                        const wrongButtons = buttons.filter(btn => {
-                            const val = parseInt(btn.innerText);
-                            return val !== currentQ.a;
-                        });
-                        wrongButtons.sort(() => Math.random() - 0.5);
-                        let hiddenCount = 0;
-                        wrongButtons.forEach(btn => {
-                            if (hiddenCount < 2) {
-                                btn.classList.add('hidden');
-                                hiddenCount++;
-                            }
-                        });
-                        Sound.click(); 
-                    } else if (type === 'potion') {
-                        state.consumables.potion--;
-                        state.activePotionMoves += 5;
-                        alert("שיקוי הופעל! פי 2 מטבעות ל-5 שאלות הבאות.");
-                        Sound.bonus();
-                    }
-                    game.save();
-                    document.getElementById('qty-parrot').innerText = state.consumables.parrot;
-                    document.getElementById('qty-potion').innerText = state.consumables.potion;
-                    document.getElementById('btn-use-parrot').disabled = true; 
+                const currentQ = state.levelQuestions[state.viewingIndex];
+                if (!(state.consumables[type] > 0)) return;
+                if (type === 'parrot') {
+                    if (!currentQ || currentQ.userAnswer !== null || state.viewingIndex !== state.questionIndex) return;
+                    const tried = currentQ.wrongPicks || [];
+                    const wrong = currentQ.options.filter(o => Number(o) !== Number(currentQ.a) && !currentQ.hiddenOptions.includes(o) && !tried.includes(o));
+                    const visible = currentQ.options.length - currentQ.hiddenOptions.length - tried.length;
+                    // Keep at least 2 answers on screen
+                    const toHide = Math.min(2, wrong.length, visible - 2);
+                    if (toHide <= 0) return;
+                    state.consumables.parrot--;
+                    wrong.sort(() => Math.random() - 0.5);
+                    currentQ.hiddenOptions.push(...wrong.slice(0, toHide));
+                    Sound.click(); 
+                } else if (type === 'potion') {
+                    if (state.activePotionMoves > 0) return;
+                    state.consumables.potion--;
+                    state.activePotionMoves += 5;
+                    ui.toast("🧪 שיקוי הופעל! פי 2 מטבעות ל-5 שאלות הבאות");
+                    Sound.bonus();
                 }
+                game.save();
+                ui.updateGameUI();
             },
             checkAchievements: () => {
                 ACHIEVEMENTS.forEach(ach => {
                     if (!state.unlockedAchievements.includes(ach.id) && ach.req(state)) {
                         state.unlockedAchievements.push(ach.id);
-                        alert(`🏆 הישג חדש: ${ach.name}!`);
+                        ui.toast(`🏆 הישג חדש: ${ach.name}!`);
                     }
                 });
             },
             prevQuestion: () => { 
-                if(state.viewingIndex > 0) { 
+                if(state.viewingIndex > 0 && !state.answerLock) { 
                     state.viewingIndex--;
                     ui.updateGameUI(); 
                 } 
             },
             nextQuestionNav: () => { 
-                if (state.devMode || state.viewingIndex < state.questionIndex) {
+                if (state.answerLock) return;
+                if (state.viewingIndex < state.questionIndex) {
                     state.viewingIndex++;
-                    if (!state.levelQuestions[state.viewingIndex] && state.devMode) {
-                         state.questionIndex = state.viewingIndex;
-                         game.generateNextQuestion();
-                    }
+                    ui.updateGameUI();
+                } else if (state.devMode) {
+                    // Dev skip: treat the current question as solved and move on
+                    if (state.questionIndex + 1 >= CONFIG.questionsPerLevel) { game.levelComplete(); return; }
+                    state.questionIndex++;
+                    game.generateNextQuestion();
                     ui.updateGameUI();
                 }
             },
             
             levelComplete: () => {
+                game.cancelPendingAdvance();
                 Sound.levelUp();
                 if(state.currentIslandIndex === state.maxIslandUnlocked && state.currentLevel === state.maxLevelReached) {
                     if(state.currentLevel < 10) state.maxLevelReached++;
@@ -1562,16 +1605,9 @@
                 
                 if (state.currentLevel === 10) { 
                     const islandId = state.currentIslandIndex + 1;
-                    let imgName = null;
-                    if (state.selectedChar === 'gal') {
-                        const galWins = { 1: 'Gal_win1.jpg', 2: 'Gal_win2.jpg', 3: 'Gal_win3.jpg', 4: 'Gal_win4.jpg', 5: 'Gal_win5.jpg', 6: 'Gal_win6.jpg', 7: 'Gal_win7.jpg', 8: 'Gal_win8.jpg', 9: 'Gal_win9.jpg' };
-                        imgName = galWins[islandId];
-                    } else if (state.selectedChar === 'nicole') {
-                        imgName = `Nicole_win${islandId}.jpg`;
-                    } else if (state.selectedChar === 'noam') {
-                        imgName = `win_images/Noam_win${islandId}.jpg`;
-                    }
-                    
+                    const winPrefix = { gal: 'Gal', nicole: 'Nicole', noam: 'Noam' }[state.selectedChar];
+                    // Islands 1-9 have a victory picture; island 10 has a victory video instead
+                    const imgName = (winPrefix && islandId <= 9) ? `win_images/${winPrefix}_win${islandId}.jpg` : null;
                     if (imgName) {
                         winImg.src = imgName;
                         winImg.onerror = function() { this.style.display = 'none'; };
@@ -1591,18 +1627,22 @@
                 } 
             },
             
-            openShopInGame: () => { previousScreen = 'game-screen';
+            openShopInGame: () => { if (state.answerLock) return; previousScreen = 'game-screen';
             ui.showScreen('shop-screen'); ui.renderShop('items'); },
-            forceWinLevel: () => { dev.toggle(); game.levelComplete();
+            forceWinLevel: () => {
+                dev.close();
+                if (!document.getElementById('game-screen').classList.contains('active')) return alert('צריך להיות בתוך שלב כדי לדלג');
+                game.levelComplete();
             },
-            addCoins: (n) => { state.coins+=n; ui.updateGameHUD();
+            addCoins: (n) => { state.coins+=n; game.save(); ui.updateHUD();
             },
-            unlockAllIslands: () => { state.maxIslandUnlocked=9; state.maxLevelReached=10; game.save(); dev.toggle();
+            unlockAllIslands: () => { state.maxIslandUnlocked=9; state.maxLevelReached=10; game.save(); dev.close();
             ui.renderMap(); },
             buyItem: (type, id) => {
                 if (type === 'char') {
                     const c = CONFIG.characters.find(x=>x.id===id);
-                    if(state.coins >= c.price) { state.coins -= c.price; state.inventory.push(id); } else return alert('אין מספיק מטבעות');
+                    if (state.inventory.includes(id)) return;
+                    if(state.coins >= c.price) { state.coins -= c.price; state.inventory.push(id); ui.toast(`🎉 ${c.name} הצטרף/ה לצוות! אפשר לבחור בו/בה ב"החלף דמות"`); } else return alert('אין מספיק מטבעות');
                 } else {
                     const it = CONFIG.items.find(x=>x.id===id);
                     if(state.coins >= it.price) { state.coins -= it.price; state.consumables[id]++; } else return alert('אין מספיק מטבעות');
@@ -1614,6 +1654,8 @@
         };
         const ui = {
             showScreen: (id) => {
+                // Leaving a level mid-answer must not let the delayed "next question" fire later
+                if (id !== 'game-screen' && id !== 'shop-screen') game.cancelPendingAdvance();
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
                 if(id==='map-screen') { ui.renderMap(); document.getElementById('hud-name').innerText = state.playerName; }
@@ -1621,6 +1663,7 @@
             },
             returnFromShop: () => { 
                 if (previousScreen === 'game-screen') {
+                    previousScreen = 'map-screen';
                     ui.showScreen('game-screen');
                     ui.updateGameUI(); // Force refresh buttons!
                 } else { 
@@ -1636,26 +1679,22 @@
                 const grid = document.getElementById('answers-area'); grid.innerHTML = '';
                 document.getElementById('btn-prev-q').disabled = (state.viewingIndex === 0);
                 const canGoNext = (state.devMode || state.viewingIndex < state.questionIndex);
+                document.getElementById('btn-prev-q').disabled = (state.viewingIndex === 0) || state.answerLock;
                 document.getElementById('btn-next-q').disabled = !canGoNext;
+                const solved = qData.userAnswer !== null && qData.isCorrect;
+                const wrongPicks = qData.wrongPicks || [];
                 qData.options.forEach(opt => {
                     const btn = document.createElement('button'); btn.className = 'answer-btn'; btn.innerText = opt;
-                    if (qData.userAnswer !== null && qData.isCorrect) { 
-                        btn.disabled = true; 
-                        if (Number(opt) === Number(qData.a)) btn.classList.add('correct'); 
-                        else if (Number(opt) === Number(qData.userAnswer)) btn.classList.add('wrong'); 
-                    }
-                    else if (qData.userAnswer === null && qData.failedAttempt && state.viewingIndex === state.questionIndex) { 
-                         btn.onclick = () => game.checkAnswer(opt);
-                    }
-                    else { 
-                        if (qData.userAnswer !== null && qData.isCorrect) {
-                             btn.disabled = true;
-                             if (Number(opt) === Number(qData.a)) btn.classList.add('correct');
-                        } else if (state.viewingIndex < state.questionIndex) {
-                               btn.onclick = () => game.checkAnswer(opt);
-                        } else {
-                             btn.onclick = () => game.checkAnswer(opt);
-                        }
+                    if ((qData.hiddenOptions || []).includes(opt)) btn.classList.add('hidden');
+                    if (solved) {
+                        btn.disabled = true;
+                        if (Number(opt) === Number(qData.a)) btn.classList.add('correct');
+                    } else if (wrongPicks.includes(opt)) {
+                        // Already tried: keep it marked so the same wrong answer isn't tapped again
+                        btn.disabled = true;
+                        btn.classList.add('wrong');
+                    } else {
+                        btn.onclick = () => game.checkAnswer(opt);
                     }
                     grid.appendChild(btn);
                 });
@@ -1670,7 +1709,8 @@
                 document.getElementById('game-coins').innerText = state.coins;
 
                 document.getElementById('qty-parrot').innerText = state.consumables.parrot;
-                document.getElementById('btn-use-parrot').disabled = state.consumables.parrot === 0 || state.viewingIndex !== state.questionIndex;
+                const visibleOptions = qData.options.length - (qData.hiddenOptions || []).length - wrongPicks.length;
+                document.getElementById('btn-use-parrot').disabled = state.consumables.parrot === 0 || state.viewingIndex !== state.questionIndex || solved || visibleOptions <= 2;
                 document.getElementById('qty-potion').innerText = state.consumables.potion;
                 document.getElementById('btn-use-potion').disabled = state.consumables.potion === 0 || state.activePotionMoves > 0;
                 
@@ -1683,6 +1723,16 @@
                 }
             },
             updateGameHUD: () => { document.getElementById('game-coins').innerText = state.coins;
+            },
+            updateHUD: () => {
+                ['game-coins', 'hud-coins', 'shop-coins'].forEach(id => { document.getElementById(id).innerText = state.coins; });
+            },
+            toast: (msg) => {
+                const t = document.getElementById('toast');
+                t.textContent = msg;
+                t.classList.add('show');
+                clearTimeout(ui.toastTimer);
+                ui.toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
             },
             renderMap: () => {
                 document.getElementById('hud-grade').innerText = ['א','ב','ג','ד','ה','ו'][state.grade-1];
@@ -1744,7 +1794,10 @@
                 c.innerHTML='';
                 CONFIG.characters.forEach(ch => {
                     const d = document.createElement('div'); d.className='char-card';
-                    d.innerHTML=`<div class="card-img-container"><img src="${ch.image}" class="card-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>👤</span>'"></div><div class="card-content"><h3>${ch.name}</h3></div>`;
+                    const owned = state.inventory.includes(ch.id);
+                    d.innerHTML=`<div class="card-img-container"><img src="${ch.image}" class="card-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'fallback-icon\\'>👤</span>'"></div><div class="card-content"><h3>${ch.name}</h3>${owned ? '' : `<p style="font-family:var(--font-num);">🔒 ${ch.price}</p>`}</div>`;
+                    if (!owned) d.style.filter = 'grayscale(1)';
+                    else if (ch.id === state.selectedChar) d.style.borderColor = 'var(--ancient-gold)';
                     d.onclick=()=>game.selectChar(ch.id); c.appendChild(d);
                 });
             },
@@ -1844,7 +1897,20 @@
             });
         }
 
+        // Hidden admin panel: tap the top-right corner 5 times quickly (doesn't block buttons under it)
+        (() => {
+            let taps = [];
+            document.addEventListener('pointerdown', (e) => {
+                if (e.clientX < window.innerWidth - 80 || e.clientY > 80) { taps = []; return; }
+                const now = Date.now();
+                taps = taps.filter(t => now - t < 2000);
+                taps.push(now);
+                if (taps.length >= 5) { taps = []; dev.toggle(); }
+            }, true);
+        })();
+
         window.onload = function() {
+            AuthManager.restore();
             currentVideoType = 'intro';
             ui.showScreen('video-screen');
             game.playVideo();
