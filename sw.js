@@ -1,5 +1,5 @@
 // Bump the version whenever files change so old caches are cleared
-const CACHE_NAME = 'mystery-island-v4';
+const CACHE_NAME = 'mystery-island-v5';
 const CORE_ASSETS = [
   './',
   './index.html',
