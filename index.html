@@ -460,6 +460,27 @@
         }
         #toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
 
+        /* PARENT REPORT */
+        .report-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0; }
+        .report-tile { background: #fff; border: 2px solid var(--wood-light); border-radius: 12px; padding: 10px 5px; }
+        .report-tile .num { font-family: var(--font-num); font-size: 1.8rem; color: var(--wood-dark); font-weight: bold; }
+        .report-tile .lbl { font-family: var(--font-hebrew-block); font-size: 0.95rem; color: #666; }
+        .report-section { text-align: right; margin-top: 20px; }
+        .report-section h3 { margin: 0 0 8px 0; font-size: 1.4rem; }
+        .report-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--wood-light);
+            border-radius: 10px; padding: 8px 12px; margin: 6px 0; font-family: var(--font-hebrew-block); font-size: 1rem; }
+        .report-row .grow { flex-grow: 1; }
+        .report-bar { width: 90px; height: 12px; background: #d7ccc8; border-radius: 6px; overflow: hidden; flex-shrink: 0; direction: ltr; }
+        .report-bar div { height: 100%; }
+        .report-mistake { background: #fff; border: 2px solid #ef9a9a; border-radius: 10px; padding: 8px 12px; margin: 6px 0;
+            font-family: var(--font-hebrew-block); font-size: 1rem; }
+        .report-mistake .q { font-size: 1.15rem; color: var(--wood-dark); }
+        .report-mistake .meta { color: #666; font-size: 0.85rem; }
+        .report-empty { font-family: var(--font-hebrew-block); font-size: 1.1rem; color: #666; }
+        .parent-email-box { margin-top: 30px; text-align: center; }
+        .parent-email-box label { font-family: var(--font-hebrew-block); font-size: 1.1rem; color: #4e342e; }
+        .parent-email-box input[type="email"] { font-size: 1.3rem; padding: 10px; margin: 8px auto; }
+
         #dev-panel { display: none;
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: var(--paper-bg); border: 5px solid var(--wood-dark); padding: 20px;
             z-index: 10001; text-align: right; }
@@ -567,6 +588,22 @@
         </div>
     </div>
 
+    <div id="parent-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="font-size:2.4rem; margin-bottom:5px;">📊 דוח להורים</h2>
+            <div id="parent-report-body"></div>
+            <div class="report-section">
+                <h3>📧 מייל ההורה</h3>
+                <input type="email" id="parent-email" placeholder="parent@example.com" dir="ltr" style="width:90%; font-size:1.3rem; padding:10px; margin:5px auto;">
+            </div>
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; margin-top:10px;">
+                <button class="btn btn-success" style="font-size:1.3rem; padding:10px 20px;" onclick="ParentReport.sendEmail()">📧 שלח דוח למייל</button>
+                <button id="parent-share-btn" class="btn" style="font-size:1.3rem; padding:10px 20px;" onclick="ParentReport.share()">📤 שתף</button>
+                <button class="btn btn-secondary" style="font-size:1.3rem; padding:10px 20px;" onclick="ParentReport.close()">סגור</button>
+            </div>
+        </div>
+    </div>
+
     <div id="login-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 style="font-family: 'Rubik Wet Paint'; color: var(--wood-dark); margin-top: 0;">כניסה לגילדה</h2>
@@ -645,6 +682,10 @@
                 <button class="btn" onclick="game.setGrade(5)">כיתה ה'</button>
                 <button class="btn" onclick="game.setGrade(6)">כיתה ו'</button>
             </div>
+            <div class="parent-email-box">
+                <label for="parent-email-start">👪 להורים: מייל לקבלת דוח התקדמות (לא חובה)</label>
+                <input type="email" id="parent-email-start" placeholder="parent@example.com" dir="ltr">
+            </div>
         </div>
 
         <div id="char-select-screen" class="screen">
@@ -659,6 +700,7 @@
                 <span>🎒 כיתה <span id="hud-grade" style="font-family: var(--font-hebrew-block);"></span></span>
                 <span>💰 <span id="hud-coins" style="font-family: var(--font-num);">0</span></span>
                 <div>
+                    <button onclick="ParentReport.openWithGate(state.playerName)" title="דוח להורים" style="background:none; border:none; cursor:pointer; font-size:2rem;">👪</button>
                     <button onclick="ui.showScreen('achievements-screen')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🏆</button>
                     <button onclick="previousScreen='map-screen'; ui.showScreen('shop-screen'); ui.renderShop('chars')" style="background:none; border:none; cursor:pointer; font-size:2rem;">🛒</button>
                 </div>
@@ -854,7 +896,8 @@
             ]
         };
         // Fields that belong to a single play session and must never be written to a save
-        const TRANSIENT_KEYS = ['levelQuestions', 'questionIndex', 'viewingIndex', 'sessionEarnings', 'devMode', 'videoCallback', 'isReturning', 'answerLock'];
+        const TRANSIENT_KEYS = ['levelQuestions', 'questionIndex', 'viewingIndex', 'sessionEarnings', 'devMode', 'videoCallback', 'isReturning', 'answerLock', 'inLevel'];
+        const HISTORY_LIMIT = 1500, LEVEL_LOG_LIMIT = 300;
         const createDefaultState = () => ({
             playerName: '', grade: 1, currentIslandIndex: 0, currentLevel: 1, maxIslandUnlocked: 0, maxLevelReached: 1,
             coins: 0, inventory: ['gal', 'nicole', 'noam'], selectedChar: 'gal', questionIndex: 0, sessionEarnings: 0,
@@ -864,7 +907,12 @@
             consumables: { parrot: 2, potion: 2 },
             activePotionMoves: 0,
             videoCallback: null,
-            answerLock: false
+            answerLock: false,
+            inLevel: false,
+            // Level in progress, saved so the player returns to the same question after leaving the app
+            activeRun: null,
+            // Answer log for the parent report
+            history: [], levelLog: [], parentEmail: ''
         });
         let state = createDefaultState();
 
@@ -1071,18 +1119,18 @@
                     n1 = MathGen.rnd(1, max / 2);
                     n2 = MathGen.rnd(1, max / 2);
                     if (grade === 1 && level < 5 && n1 + n2 > 10) n2 = 10 - n1;
-                    return MathGen.formatQ(`${n1} + ${n2} = ?`, n1 + n2);
+                    return MathGen.tag('חיבור', MathGen.formatQ(`${n1} + ${n2} = ?`, n1 + n2));
                 } else {
                     n1 = MathGen.rnd(Math.floor(max * 0.4), max);
                     n2 = MathGen.rnd(1, n1);
-                    return MathGen.formatQ(`${n1} - ${n2} = ?`, n1 - n2);
+                    return MathGen.tag('חיסור', MathGen.formatQ(`${n1} - ${n2} = ?`, n1 - n2));
                 }
             },
 
             getMulDiv: (grade, level) => {
                 if (grade === 1) { 
                     const n = MathGen.rnd(2, 3 + Math.floor(level/3));
-                    return MathGen.formatQ(`${n} + ${n} + ${n} = ?`, n * 3);
+                    return MathGen.tag('כפל', MathGen.formatQ(`${n} + ${n} + ${n} = ?`, n * 3));
                 }
                 
                 // --- כיתות ה'-ו': סדר פעולות חשבון וחזקות ---
@@ -1095,7 +1143,7 @@
                         const b = MathGen.rnd(2, 5);
                         const c = MathGen.rnd(2, 5);
                         // a + b * c
-                        return MathGen.formatQ(`${a} + ${b} × ${c} = ?`, a + (b * c));
+                        return MathGen.tag('סדר פעולות', MathGen.formatQ(`${a} + ${b} × ${c} = ?`, a + (b * c)));
                     }
                     // סוגריים
                     if (type === 2) {
@@ -1103,18 +1151,18 @@
                         const b = MathGen.rnd(2, 6);
                         const c = MathGen.rnd(2, 5);
                         // c * (a + b)
-                        return MathGen.formatQ(`${c} × (${a} + ${b}) = ?`, c * (a + b));
+                        return MathGen.tag('סדר פעולות', MathGen.formatQ(`${c} × (${a} + ${b}) = ?`, c * (a + b)));
                     }
                     // חזקות (כיתה ו') או כפל תלת ספרתי (כיתה ה')
                     if (type === 3) {
                         if (grade === 6) {
                             const base = MathGen.rnd(2, 6);
-                            return MathGen.formatQ(`${base}² = ?`, base * base);
+                            return MathGen.tag('חזקות', MathGen.formatQ(`${base}² = ?`, base * base));
                         } else {
                             // כיתה ה': כפל דו ספרתי בעשרות שלמות
                             const a = MathGen.rnd(2, 9) * 10; // 20, 30...
                             const b = MathGen.rnd(2, 9);
-                            return MathGen.formatQ(`${a} × ${b} = ?`, a * b);
+                            return MathGen.tag('כפל', MathGen.formatQ(`${a} × ${b} = ?`, a * b));
                         }
                     }
                 }
@@ -1128,10 +1176,10 @@
                 if (Math.random() > 0.5) { 
                     let n1 = MathGen.rnd(1, maxFactor), n2 = MathGen.rnd(1, maxFactor);
                     if (grade >= 5 && n1 > 12) n1 = MathGen.rnd(2,9) * 10; 
-                    return MathGen.formatQ(`${n1} × ${n2} = ?`, n1 * n2);
+                    return MathGen.tag('כפל', MathGen.formatQ(`${n1} × ${n2} = ?`, n1 * n2));
                 } else { 
                     let ans = MathGen.rnd(1, maxFactor), n2 = MathGen.rnd(1, maxFactor);
-                    return MathGen.formatQ(`${ans*n2} : ${n2} = ?`, ans);
+                    return MathGen.tag('חילוק', MathGen.formatQ(`${ans*n2} : ${n2} = ?`, ans));
                 }
             },
 
@@ -1145,7 +1193,7 @@
                     // 25% צריך מספר שמתחלק ב-4 כדי שהתשובה תהיה שלמה
                     const whole = percent === 25 ? MathGen.rnd(1, 10) * 20 : MathGen.rnd(2, 20) * 10;
                     let ans = (whole * percent) / 100;
-                    return MathGen.formatQ(`כמה הם ${percent}% מתוך ${whole}?`, ans, true);
+                    return MathGen.tag('אחוזים', MathGen.formatQ(`כמה הם ${percent}% מתוך ${whole}?`, ans, true));
                 }
                 
                 let limit = 10;
@@ -1159,7 +1207,7 @@
                     let extra = MathGen.rnd(10, level * 10) * 10;
                     const runner = MathGen.pick(MathGen.db.names);
                     const ran = runner.f ? 'רצה' : 'רץ', walked = runner.f ? 'הלכה' : 'הלך', passed = runner.f ? 'עברה' : 'עבר';
-                    return MathGen.formatQ(`${runner.n} ${ran} ${dist} מטר ואז ${walked} עוד ${extra} מטר. כמה ${passed} סה"כ?`, dist + extra, true);
+                    return MathGen.tag('בעיות מילוליות', MathGen.formatQ(`${runner.n} ${ran} ${dist} מטר ואז ${walked} עוד ${extra} מטר. כמה ${passed} סה"כ?`, dist + extra, true));
                 }
 
                 let n1 = MathGen.rnd(3, limit), n2 = MathGen.rnd(2, Math.floor(limit/2));
@@ -1167,11 +1215,11 @@
                 const pronoun = g ? 'היא' : 'הוא', toThem = g ? 'לה' : 'לו';
                 if (Math.random() > 0.5) { 
                     let action = MathGen.pick(MathGen.db.actions_add)[g];
-                    return MathGen.formatQ(`ל${name.n} היו ${n1} ${item}. ${pronoun} ${action} ${n2}. כמה יש ${toThem} עכשיו?`, n1 + n2, true);
+                    return MathGen.tag('בעיות מילוליות', MathGen.formatQ(`ל${name.n} היו ${n1} ${item}. ${pronoun} ${action} ${n2}. כמה יש ${toThem} עכשיו?`, n1 + n2, true));
                 } else { 
                     let total = n1 + n2;
                     let action = MathGen.pick(MathGen.db.actions_sub)[g];
-                    return MathGen.formatQ(`ל${name.n} היו ${total} ${item}. ${pronoun} ${action} ${n2}. כמה נשארו ${toThem}?`, n1, true);
+                    return MathGen.tag('בעיות מילוליות', MathGen.formatQ(`ל${name.n} היו ${total} ${item}. ${pronoun} ${action} ${n2}. כמה נשארו ${toThem}?`, n1, true));
                 }
             },
 
@@ -1184,33 +1232,35 @@
                     if (type === 1) {
                         const x = MathGen.rnd(2, 12);
                         const multiplier = MathGen.rnd(2, 9);
-                        return MathGen.formatQ(`אם ${multiplier}X = ${x*multiplier}, כמה שווה X?`, x, true);
+                        return MathGen.tag('משוואות', MathGen.formatQ(`אם ${multiplier}X = ${x*multiplier}, כמה שווה X?`, x, true));
                     }
                     // מציאת נעלם עם חיבור: X + 15 = 40
                     if (type === 2) {
                         const x = MathGen.rnd(5, 50);
                         const add = MathGen.rnd(10, 100);
-                        return MathGen.formatQ(`X + ${add} = ${x+add}. כמה שווה X?`, x, true);
+                        return MathGen.tag('משוואות', MathGen.formatQ(`X + ${add} = ${x+add}. כמה שווה X?`, x, true));
                     }
                 }
 
                 if (type === 1) { 
                     let start = MathGen.rnd(1, 10 + level); let jump = MathGen.rnd(1, grade===1?2:2+Math.floor(level/3));
                     if (grade >= 5) jump = jump * 2;
-                    return MathGen.formatQ(`${start}, ${start+jump}, ${start+jump*2}, ?`, start+jump*3);
+                    return MathGen.tag('סדרות', MathGen.formatQ(`${start}, ${start+jump}, ${start+jump*2}, ?`, start+jump*3));
                 }
                 if (type === 2) { 
                     let max = (grade===1)?10:10*grade+(level*2);
                     if (grade >= 5) max = 500;
                     let a = MathGen.rnd(1, max), b = MathGen.rnd(1, max);
-                    return MathGen.formatQ(`${a} + ? = ${a+b}`, b);
+                    return MathGen.tag('מספר חסר', MathGen.formatQ(`${a} + ? = ${a+b}`, b));
                 }
                 let range = (grade===1)?20:50*grade;
                 if (grade >= 5) range = 5000;
                 let a = MathGen.rnd(range/2, range), b = MathGen.rnd(range/2, range); if(a===b)b++;
                 // התשובות האפשריות הן בדיוק שני המספרים מהשאלה
-                return MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true, [a, b]);
+                return MathGen.tag('השוואת מספרים', MathGen.formatQ(`מה גדול יותר? ${a} או ${b}`, Math.max(a, b), true, [a, b]));
             },
+
+            tag: (topic, q) => { q.topic = topic; return q; },
 
             formatQ: (q, a, isHebrew = false, fixedOptions = null) => {
                 let options = new Set();
@@ -1344,6 +1394,13 @@
                         nameEl.onclick = () => game.loadSpecificPlayer(p.name);
                         div.querySelector('.player-stats').textContent =
                             `אי ${(p.data.maxIslandUnlocked || 0) + 1} | שלב ${p.data.maxLevelReached || 1} | 💰 ${p.data.coins || 0}`;
+                        const rep = document.createElement('button');
+                        rep.className = 'delete-btn';
+                        rep.style.cssText = 'background:#E8F5E9; color:var(--success); border-color:var(--success);';
+                        rep.textContent = '📊';
+                        rep.title = 'דוח להורים';
+                        rep.onclick = () => ParentReport.openWithGate(p.name);
+                        div.appendChild(rep);
                         if (!p.isMe) {
                             const del = document.createElement('button');
                             del.className = 'delete-btn';
@@ -1394,13 +1451,17 @@
                     if (!Array.isArray(state.unlockedAchievements)) state.unlockedAchievements = [];
                     if (!CONFIG.characters.some(c => c.id === state.selectedChar)) state.selectedChar = 'gal';
                     if (!(state.grade >= 1 && state.grade <= 6)) state.grade = 1;
+                    if (!Array.isArray(state.history)) state.history = [];
+                    if (!Array.isArray(state.levelLog)) state.levelLog = [];
                 }
                 state.playerName = name;
+                if (!state.parentEmail && AuthManager.mode === 'user') state.parentEmail = AuthManager.currentUser.email;
                 document.getElementById('hud-name').innerText = name;
+                Storage.set('mathLastPlayer', name);
 
                 if (saved) {
                     state.isReturning = true;
-                    ui.showScreen('map-screen');
+                    if (!game.resumeRun()) ui.showScreen('map-screen');
                 } else {
                     state.isReturning = false;
                     document.getElementById('welcome-name').innerText = name;
@@ -1409,6 +1470,8 @@
                 Sound.click();
             },
             setGrade: (g) => { state.grade = g; Sound.click();
+            const pe = document.getElementById('parent-email-start').value.trim();
+            if (pe) state.parentEmail = pe;
             ui.showScreen('char-select-screen'); ui.renderCharSelect(); },
             selectChar: (id) => {
                 if (!state.inventory.includes(id)) {
@@ -1428,6 +1491,12 @@
             },
             save: () => { 
                 if (!state.playerName) return;
+                if (state.inLevel && state.levelQuestions.length) {
+                    state.activeRun = {
+                        island: state.currentIslandIndex, level: state.currentLevel,
+                        questions: state.levelQuestions, questionIndex: state.questionIndex, earnings: state.sessionEarnings
+                    };
+                }
                 const data = { ...state };
                 TRANSIENT_KEYS.forEach(k => delete data[k]);
                 Storage.set(Storage.prefix + state.playerName, JSON.stringify(data));
@@ -1444,18 +1513,69 @@
                 ui.showStory(StoryGen.getStory(currentIslandId, lvl), CONFIG.islands[state.currentIslandIndex].levels[lvl-1].name);
             },
             startLevel: () => {
+                // Same level that was left unfinished: continue it instead of starting over
+                const run = state.activeRun;
+                if (run && run.island === state.currentIslandIndex && run.level === state.currentLevel && game.resumeRun()) return;
                 game.cancelPendingAdvance();
                 state.answerLock = false;
                 state.questionIndex = 0;
                 state.viewingIndex = 0; state.levelQuestions = []; state.sessionEarnings = 0; 
+                state.inLevel = true;
                 game.generateNextQuestion(); 
+                game.save();
+                game.showGameScreen();
+            },
+            showGameScreen: () => {
+                // Also prepare the island map behind "exit to map" (it may not exist yet after reopening the app)
+                ui.renderLevelSelect(state.currentIslandIndex);
                 document.getElementById('game-background-layer').style.backgroundImage = `url('${CONFIG.islands[state.currentIslandIndex].image}')`;
                 ui.renderGameNodes(); 
                 ui.showScreen('game-screen'); ui.updateGameUI();
             },
+            resumeRun: () => {
+                const run = state.activeRun;
+                const valid = run && CONFIG.islands[run.island] && run.level >= 1 && run.level <= 10 &&
+                    Array.isArray(run.questions) && run.questions.length > 0 && run.questions.length <= CONFIG.questionsPerLevel &&
+                    run.questions.every(q => q && Array.isArray(q.options) && 'a' in q) &&
+                    run.questionIndex >= 0 && run.questionIndex < run.questions.length;
+                if (!valid) { state.activeRun = null; return false; }
+                game.cancelPendingAdvance();
+                state.currentIslandIndex = run.island;
+                state.currentLevel = run.level;
+                state.levelQuestions = run.questions;
+                state.questionIndex = run.questionIndex;
+                state.sessionEarnings = run.earnings || 0;
+                state.inLevel = true;
+                state.levelQuestions.forEach(q => { if (!q.hiddenOptions) q.hiddenOptions = []; });
+                // The app may have closed right after a correct answer, before moving on
+                const cur = state.levelQuestions[state.questionIndex];
+                if (cur.isCorrect) {
+                    if (state.questionIndex + 1 >= CONFIG.questionsPerLevel) {
+                        state.viewingIndex = state.questionIndex;
+                        game.levelComplete();
+                        return true;
+                    }
+                    state.questionIndex++;
+                    if (!state.levelQuestions[state.questionIndex]) game.generateNextQuestion();
+                }
+                state.viewingIndex = state.questionIndex;
+                state.levelQuestions[state.questionIndex].shownAt = Date.now();
+                game.showGameScreen();
+                ui.toast(`🏴‍☠️ ממשיכים מאיפה שעצרת – שאלה ${state.questionIndex + 1}`);
+                return true;
+            },
             generateNextQuestion: () => {
                 const q = MathGen.generate(CONFIG.islands[state.currentIslandIndex].type, state.grade, state.currentLevel, state.questionIndex);
+                q.shownAt = Date.now();
                 state.levelQuestions.push(q); state.viewingIndex = state.questionIndex;
+            },
+            logAnswer: (q) => {
+                const ms = q.shownAt ? Math.min(Date.now() - q.shownAt, 5 * 60 * 1000) : 0;
+                state.history.push({
+                    t: Date.now(), i: state.currentIslandIndex, l: state.currentLevel, g: state.grade,
+                    topic: q.topic || 'כללי', q: q.q, a: q.a, wrong: q.wrongPicks || [], ms: ms
+                });
+                if (state.history.length > HISTORY_LIMIT) state.history.splice(0, state.history.length - HISTORY_LIMIT);
             },
             pendingAdvance: null,
             cancelPendingAdvance: () => {
@@ -1489,6 +1609,7 @@
                         }
                     }
                     currentQ.userAnswer = val; currentQ.isCorrect = true;
+                    if (answeredIdx === state.questionIndex) game.logAnswer(currentQ);
                     game.checkAchievements();
                     game.save();
                     ui.updateGameUI();
@@ -1514,6 +1635,7 @@
                     currentQ.failedAttempt = true; 
                     currentQ.wrongPicks = [...(currentQ.wrongPicks || []), val];
                     state.streak = 0; // Reset streak
+                    game.save();
                     setTimeout(() => { fw.style.display = 'none'; }, 600);
                     ui.updateGameUI();
                 }
@@ -1575,6 +1697,14 @@
             levelComplete: () => {
                 game.cancelPendingAdvance();
                 Sound.levelUp();
+                if (state.inLevel) {
+                    const qs = state.levelQuestions;
+                    state.levelLog.push({ t: Date.now(), i: state.currentIslandIndex, l: state.currentLevel,
+                        firstTry: qs.filter(q => q.isCorrect && !q.failedAttempt).length, total: qs.length, earned: state.sessionEarnings });
+                    if (state.levelLog.length > LEVEL_LOG_LIMIT) state.levelLog.splice(0, state.levelLog.length - LEVEL_LOG_LIMIT);
+                }
+                state.inLevel = false;
+                state.activeRun = null;
                 if(state.currentIslandIndex === state.maxIslandUnlocked && state.currentLevel === state.maxLevelReached) {
                     if(state.currentLevel < 10) state.maxLevelReached++;
                     else if(state.maxIslandUnlocked < 9) { state.maxIslandUnlocked++; state.maxLevelReached=1; }
@@ -1871,6 +2001,139 @@
             }
         };
 
+        // --- PARENT REPORT ---
+        // Built from a player's saved data, so a parent can open it for any player on this device.
+        const ParentReport = {
+            name: null,
+            esc: (str) => String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+            pct: (n, d) => d ? Math.round(n / d * 100) : 0,
+            fmtDate: (t) => new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' }),
+            fmtMinutes: (ms) => { const m = Math.round(ms / 60000); return m < 60 ? `${m} דק'` : `${Math.floor(m / 60)} ש' ${m % 60} דק'`; },
+            barColor: (p) => p >= 80 ? 'var(--success)' : p >= 60 ? 'var(--gold)' : 'var(--danger)',
+
+            data: (name) => {
+                if (name === state.playerName) { game.save(); }
+                const d = Storage.loadPlayer(name) || {};
+                return { ...d, history: Array.isArray(d.history) ? d.history : [], levelLog: Array.isArray(d.levelLog) ? d.levelLog : [] };
+            },
+
+            // Kids shouldn't wander in: a quick multiplication only grown-ups will bother with
+            openWithGate: (name) => {
+                if (!name) return;
+                const a = MathGen.rnd(6, 9), b = MathGen.rnd(6, 9);
+                const ans = prompt(`👪 אזור הורים\nכמה זה ${a} × ${b}?`);
+                if (ans === null) return;
+                if (Number(ans.trim()) !== a * b) return alert('התשובה לא נכונה');
+                ParentReport.open(name);
+            },
+
+            summarize: (d) => {
+                const h = d.history;
+                const firstTry = h.filter(e => !e.wrong.length).length;
+                const topics = {};
+                h.forEach(e => {
+                    const t = topics[e.topic] || (topics[e.topic] = { n: 0, ok: 0 });
+                    t.n++; if (!e.wrong.length) t.ok++;
+                });
+                const topicList = Object.entries(topics).map(([k, v]) => ({ topic: k, n: v.n, p: ParentReport.pct(v.ok, v.n) }))
+                    .sort((x, y) => x.p - y.p);
+                const days = {};
+                h.forEach(e => {
+                    const key = new Date(e.t).toDateString();
+                    const day = days[key] || (days[key] = { t: e.t, n: 0, ok: 0, ms: 0 });
+                    day.n++; if (!e.wrong.length) day.ok++; day.ms += e.ms || 0;
+                });
+                const dayList = Object.values(days).sort((x, y) => y.t - x.t).slice(0, 7);
+                const mistakes = h.filter(e => e.wrong.length).slice(-20).reverse();
+                const island = CONFIG.islands[d.maxIslandUnlocked || 0];
+                return {
+                    total: h.length, firstTry, pFirst: ParentReport.pct(firstTry, h.length),
+                    time: h.reduce((s, e) => s + (e.ms || 0), 0), levels: d.levelLog.length,
+                    where: island ? `${island.name}, שלב ${d.maxLevelReached || 1}` : '',
+                    grade: ['א','ב','ג','ד','ה','ו'][(d.grade || 1) - 1],
+                    topicList, dayList, mistakes
+                };
+            },
+
+            open: (name) => {
+                ParentReport.name = name;
+                const d = ParentReport.data(name);
+                const r = ParentReport.summarize(d);
+                const E = ParentReport.esc;
+                let html = `<h3 style="margin:0;">${E(name)} · כיתה ${r.grade}</h3>
+                    <p class="report-empty" style="margin:5px 0;">📍 ${E(r.where)}</p>`;
+                if (!r.total) {
+                    html += `<p class="report-empty" style="margin-top:20px;">עדיין אין נתונים. הדוח יתמלא אחרי שהילד/ה יענו על כמה שאלות.</p>`;
+                } else {
+                    html += `<div class="report-tiles">
+                        <div class="report-tile"><div class="num">${r.total}</div><div class="lbl">שאלות שנפתרו</div></div>
+                        <div class="report-tile"><div class="num">${r.pFirst}%</div><div class="lbl">נכון בניסיון ראשון</div></div>
+                        <div class="report-tile"><div class="num">${r.levels}</div><div class="lbl">שלבים שהושלמו</div></div>
+                        <div class="report-tile"><div class="num" style="font-size:1.4rem;">${ParentReport.fmtMinutes(r.time)}</div><div class="lbl">זמן תרגול</div></div>
+                    </div>`;
+                    html += `<div class="report-section"><h3>📚 לפי נושא (מהחלש לחזק)</h3>` + r.topicList.map(t => `
+                        <div class="report-row"><span class="grow">${E(t.topic)} <span style="color:#888;">(${t.n})</span></span>
+                        <span>${t.p}%</span><div class="report-bar"><div style="width:${t.p}%; background:${ParentReport.barColor(t.p)};"></div></div></div>`).join('') + `</div>`;
+                    html += `<div class="report-section"><h3>📅 ימים אחרונים</h3>` + r.dayList.map(day => {
+                        const p = ParentReport.pct(day.ok, day.n);
+                        return `<div class="report-row"><span class="grow">${ParentReport.fmtDate(day.t)} · ${day.n} שאלות · ${ParentReport.fmtMinutes(day.ms)}</span>
+                        <span>${p}%</span><div class="report-bar"><div style="width:${p}%; background:${ParentReport.barColor(p)};"></div></div></div>`;
+                    }).join('') + `</div>`;
+                    html += `<div class="report-section"><h3>❌ טעויות אחרונות</h3>` + (r.mistakes.length ? r.mistakes.map(m => `
+                        <div class="report-mistake"><div class="q" dir="auto">${E(m.q)}</div>
+                        <div>ענה/תה: <b style="color:var(--danger);">${E(m.wrong.join(', '))}</b> · התשובה הנכונה: <b style="color:var(--success);">${E(m.a)}</b></div>
+                        <div class="meta">${ParentReport.fmtDate(m.t)} · ${E(m.topic)} · ${E(CONFIG.islands[m.i] ? CONFIG.islands[m.i].name : '')} שלב ${m.l}</div></div>`).join('')
+                        : `<p class="report-empty">אין טעויות – כל הכבוד! 🎉</p>`) + `</div>`;
+                }
+                document.getElementById('parent-report-body').innerHTML = html;
+                document.getElementById('parent-email').value = d.parentEmail || '';
+                document.getElementById('parent-share-btn').style.display = navigator.share ? '' : 'none';
+                document.getElementById('load-game-modal').style.display = 'none';
+                document.getElementById('parent-modal').style.display = 'flex';
+            },
+            close: () => {
+                ParentReport.saveEmail();
+                document.getElementById('parent-modal').style.display = 'none';
+            },
+            saveEmail: () => {
+                const name = ParentReport.name;
+                const email = document.getElementById('parent-email').value.trim();
+                if (!name) return;
+                if (name === state.playerName) { state.parentEmail = email; game.save(); return; }
+                const d = Storage.loadPlayer(name);
+                if (d) { d.parentEmail = email; Storage.set(Storage.prefix + name, JSON.stringify(d)); }
+            },
+
+            text: () => {
+                const name = ParentReport.name;
+                const d = ParentReport.data(name);
+                const r = ParentReport.summarize(d);
+                const lines = [`דוח התקדמות – אי המסתורין`, `שחקן/ית: ${name} (כיתה ${r.grade})`, `מיקום: ${r.where}`, ''];
+                if (!r.total) return lines.concat('עדיין אין נתונים.').join('\n');
+                lines.push(`שאלות שנפתרו: ${r.total}`, `נכון בניסיון ראשון: ${r.pFirst}%`, `שלבים שהושלמו: ${r.levels}`, `זמן תרגול: ${ParentReport.fmtMinutes(r.time)}`, '', 'לפי נושא:');
+                r.topicList.forEach(t => lines.push(`• ${t.topic}: ${t.p}% (${t.n} שאלות)`));
+                lines.push('', 'ימים אחרונים:');
+                r.dayList.forEach(day => lines.push(`• ${ParentReport.fmtDate(day.t)}: ${day.n} שאלות, ${ParentReport.pct(day.ok, day.n)}% הצלחה, ${ParentReport.fmtMinutes(day.ms)}`));
+                if (r.mistakes.length) {
+                    lines.push('', 'טעויות אחרונות:');
+                    r.mistakes.slice(0, 10).forEach(m => lines.push(`• ${m.q} → ענה/תה ${m.wrong.join(', ')}, נכון: ${m.a}`));
+                }
+                return lines.join('\n');
+            },
+            sendEmail: () => {
+                const email = document.getElementById('parent-email').value.trim();
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return alert('נא להכניס כתובת מייל תקינה');
+                ParentReport.saveEmail();
+                const subject = `דוח התקדמות – ${ParentReport.name} – אי המסתורין`;
+                // Opens the device's mail app with the report ready to send
+                window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(ParentReport.text())}`;
+            },
+            share: () => {
+                if (!navigator.share) return;
+                navigator.share({ title: 'דוח התקדמות – אי המסתורין', text: ParentReport.text() }).catch(() => {});
+            }
+        };
+
         const Confetti = {
             explode: () => {
                 const canvas = document.getElementById('confetti-canvas');
@@ -1909,8 +2172,14 @@
             }, true);
         })();
 
+        // Phones often kill the app in the background without warning, so save whenever it's hidden
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') game.save(); });
+        window.addEventListener('pagehide', () => game.save());
+
         window.onload = function() {
             AuthManager.restore();
+            const last = Storage.get('mathLastPlayer');
+            if (last && AuthManager.mode === 'guest') document.getElementById('player-name').value = last;
             currentVideoType = 'intro';
             ui.showScreen('video-screen');
             game.playVideo();
